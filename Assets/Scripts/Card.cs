@@ -5,6 +5,7 @@ using UnityEngine;
 public class Card : MonoBehaviour
 {
 	public bool hasBeenPlayed;
+	public bool isBeingChosen;
 	public int handIndex;
 
 	GameManager gm;
@@ -25,21 +26,30 @@ public class Card : MonoBehaviour
 	{
 		if (!hasBeenPlayed)
 		{
-			Instantiate(hollowCircle, transform.position, Quaternion.identity);
-			
+            Instantiate(hollowCircle, transform.position, Quaternion.identity);
+
 			// camAnim.SetTrigger("shake");
 			// anim.SetTrigger("move");
 
-			transform.position += Vector3.up * 3f;
-			hasBeenPlayed = true;
-			gm.availableCardSlots[handIndex] = true;
+            //hasBeenPlayed = true;
+            isBeingChosen = true;
+            gm.availableCardSlots[handIndex] = true;
 			// Invoke("MoveToDiscardPile", 2f);
 
 			
 		}
 	}
 
-	void MoveToDiscardPile()
+    public void Update()
+    {
+		if (isBeingChosen)
+		{
+            Vector3 mousePos = Input.mousePosition;
+            mousePos.z = Camera.main.nearClipPlane;
+            transform.position = Camera.main.ScreenToWorldPoint(mousePos);
+        }
+    }
+    void MoveToDiscardPile()
 	{
 		Instantiate(effect, transform.position, Quaternion.identity);
 		gm.discardPile.Add(this);

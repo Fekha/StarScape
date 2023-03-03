@@ -4,14 +4,19 @@ using UnityEngine;
 
 public class PlacementManager : MonoBehaviour
 {
+    public Material myMaterial;
+    public Material highlight;
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        
+        myMaterial = GetComponent<MeshRenderer>().material;
+    }
+    private void OnMouseOver()
+    {
+        myMaterial = highlight;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnMouseExit()
     {
         
     }

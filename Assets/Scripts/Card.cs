@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.UI.Image;
 
 public class Card : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class Card : MonoBehaviour
 	public int handIndex;
 
 	GameManager gm;
-
+	public Vector3 origin;
 	private Animator anim;
 	private Animator camAnim;
 
@@ -22,22 +23,36 @@ public class Card : MonoBehaviour
 		// anim = GetComponent<Animator>();
 		// camAnim = Camera.main.GetComponent<Animator>();
 	}
-	private void OnMouseDown()
+	private void OnMouseUp()
 	{
-		if (!hasBeenPlayed)
+        if (isBeingChosen)
+        {
+            transform.position = origin;
+            isBeingChosen = false;
+        }
+    }
+    private void OnMouseDown()
+    {
+		if (!isBeingChosen)
 		{
-            Instantiate(hollowCircle, transform.position, Quaternion.identity);
-
-			// camAnim.SetTrigger("shake");
-			// anim.SetTrigger("move");
-
-            //hasBeenPlayed = true;
+			origin = transform.position;
             isBeingChosen = true;
-            gm.availableCardSlots[handIndex] = true;
-			// Invoke("MoveToDiscardPile", 2f);
+        }
+	
+		//if (!hasBeenPlayed)
+		//{
+  //          Instantiate(hollowCircle, transform.position, Quaternion.identity);
+
+		//	// camAnim.SetTrigger("shake");
+		//	// anim.SetTrigger("move");
+
+  //          //hasBeenPlayed = true;
+            
+  //          gm.availableCardSlots[handIndex] = true;
+		//	// Invoke("MoveToDiscardPile", 2f);
 
 			
-		}
+		//}
 	}
 
     public void Update()

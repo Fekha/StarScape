@@ -9,17 +9,20 @@ public class Card : MonoBehaviour
 	public bool isBeingChosen;
 	public int handIndex;
 
-	GameManager gm;
 	public Vector3 origin;
-	private Animator anim;
-	private Animator camAnim;
+	//private Animator anim;
+	//private Animator camAnim;
 
-	public GameObject effect;
-	public GameObject hollowCircle;
+	//public GameObject effect;
+	//public GameObject hollowCircle;
 
-	private void Start()
+	internal double attack =5;
+    internal double hp=10;
+    internal double speed=7;
+
+
+    private void Start()
 	{
-		gm = FindObjectOfType<GameManager>();
 		// anim = GetComponent<Animator>();
 		// camAnim = Camera.main.GetComponent<Animator>();
 	}
@@ -27,32 +30,38 @@ public class Card : MonoBehaviour
 	{
         if (isBeingChosen)
         {
-            transform.position = origin;
             isBeingChosen = false;
+			var currentPlacement = GameManager.i.getHighlightedPlacement();
+            if (currentPlacement == null)
+			{
+                transform.position = origin;
+            }
+			else
+			{
+                hasBeenPlayed = true;
+                GameManager.i.availableCardSlots[handIndex] = null;
+                handIndex = 0;
+                transform.position = (Vector3)currentPlacement;
+            }
         }
     }
     private void OnMouseDown()
     {
-		if (!isBeingChosen)
+		if (hasBeenPlayed)
 		{
-			origin = transform.position;
-            isBeingChosen = true;
-        }
-	
-		//if (!hasBeenPlayed)
-		//{
-  //          Instantiate(hollowCircle, transform.position, Quaternion.identity);
-
-		//	// camAnim.SetTrigger("shake");
-		//	// anim.SetTrigger("move");
-
-  //          //hasBeenPlayed = true;
-            
-  //          gm.availableCardSlots[handIndex] = true;
-		//	// Invoke("MoveToDiscardPile", 2f);
-
+			//show card stats
+		}
+		else
+		{
+            if (!isBeingChosen)
+            {
+                origin = transform.position;
+                isBeingChosen = true;
+            }
+            //Instantiate(hollowCircle, transform.position, Quaternion.identity);
+			// camAnim.SetTrigger("shake");
 			
-		//}
+		}
 	}
 
     public void Update()
@@ -64,13 +73,10 @@ public class Card : MonoBehaviour
             transform.position = Camera.main.ScreenToWorldPoint(mousePos);
         }
     }
-    void MoveToDiscardPile()
-	{
-		Instantiate(effect, transform.position, Quaternion.identity);
-		gm.discardPile.Add(this);
-		gameObject.SetActive(false);
-	}
-
-
-
+ //   void MoveToDiscardPile()
+	//{
+	//	Instantiate(effect, transform.position, Quaternion.identity);
+	//	gm.discardPile.Add(this);
+	//	gameObject.SetActive(false);
+	//}
 }

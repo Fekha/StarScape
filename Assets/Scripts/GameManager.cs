@@ -5,40 +5,47 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-
+	public static GameManager i;
 	public List<Card> deck;
 	// public TextMeshProUGUI deckSizeText;
 
 	public Transform[] cardSlots;
-	public bool[] availableCardSlots;
+	public Card[] availableCardSlots = new Card[5];
 
-	public List<Card> discardPile;
+    private Vector3? currentPlacement;
+    public List<Card> discardPile;
 	// public TextMeshProUGUI discardPileSizeText;
 
 	private Animator camAnim;
 
 	private void Start()
 	{
-		// camAnim = Camera.main.GetComponent<Animator>();
-	}
-
+		i = this;
+        // camAnim = Camera.main.GetComponent<Animator>();
+    }
+	internal void setHighlightedPlacement(Vector3? placement)
+	{
+		currentPlacement = placement;
+    }
+	internal Vector3? getHighlightedPlacement()
+	{
+		return currentPlacement;
+    }
 	public void DrawCard()
 	{
 		if (deck.Count >= 1)
 		{
 			// camAnim.SetTrigger("shake");
-
+			//This hand and deck system with both be redone
 			Card randomCard = deck[Random.Range(0, deck.Count)];
 			for (int i = 0; i < availableCardSlots.Length; i++)
 			{
-				if (availableCardSlots[i] == true)
+				if (availableCardSlots[i] == null)
 				{
-					randomCard.gameObject.SetActive(true);
-					randomCard.handIndex = i;
-					randomCard.transform.position = cardSlots[i].position;
-					randomCard.hasBeenPlayed = false;
-					deck.Remove(randomCard);
-					availableCardSlots[i] = false;
+                    var newCard = Instantiate(randomCard, cardSlots[i].position, cardSlots[i].rotation);
+                    newCard.handIndex = i;
+                    availableCardSlots[i] = newCard;
+                    deck.Remove(randomCard);
 					return;
 				}
 			}

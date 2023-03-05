@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlacementManager : MonoBehaviour
+public class CardPlacement : MonoBehaviour
 {
     public Material startingMaterial;
     public Material highlightMaterial;
@@ -14,7 +14,7 @@ public class PlacementManager : MonoBehaviour
         if (isTeam)
         {
             GetComponent<MeshRenderer>().material = highlightMaterial;
-            GameManager.i.setHighlightedPlacement(transform.position);
+            GameManager.i.setHighlightedPlacement(this);
         }
     }
 

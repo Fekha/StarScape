@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,9 +12,11 @@ public class GameManager : MonoBehaviour
 
 	public Transform[] cardSlots;
 	public Card[] availableCardSlots = new Card[5];
-
-    private Vector3? currentPlacement;
+	public Card[,] gameBoard = new Card[3,6];
+	public Base[] enemyBases = new Base[3];
+    private CardPlacement currentPlacement;
     public List<Card> discardPile;
+	public GameObject popup;
 	// public TextMeshProUGUI discardPileSizeText;
 
 	private Animator camAnim;
@@ -21,13 +24,16 @@ public class GameManager : MonoBehaviour
 	private void Start()
 	{
 		i = this;
+		DrawCard();
+		DrawCard();
+		DrawCard();
         // camAnim = Camera.main.GetComponent<Animator>();
     }
-	internal void setHighlightedPlacement(Vector3? placement)
+	internal void setHighlightedPlacement(CardPlacement placement)
 	{
 		currentPlacement = placement;
     }
-	internal Vector3? getHighlightedPlacement()
+	internal CardPlacement getHighlightedPlacement()
 	{
 		return currentPlacement;
     }
@@ -64,10 +70,37 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	private void Update()
+	public void EndTurn()
 	{
-		// deckSizeText.text = deck.Count.ToString();
-		// discardPileSizeText.text = discardPile.Count.ToString();
-	}
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				var currentCard = gameBoard[i, j];
+				if (currentCard != null)
+				{
+					Card enemyCard = null;
+                    for (int k = 5; k >= 3; k--)
+					{
+                        enemyCard = gameBoard[i, k];
+                    }
+					if (enemyCard == null)
+					{
+                        enemyBases[i].UpdateHp(currentCard.attack);
+                    }
+                    else
+					{
+                        enemyCard.UpdateHp(currentCard.attack);
+                    }
+                }
+			}
+		}
+		//check if you won
+		if (enemyBases.Count(x=>x.hp > 0) < 2)
+		{
+			popup.SetActive(true);
+        }
+        DrawCard();
+    }
 
 }

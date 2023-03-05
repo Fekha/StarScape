@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using static UnityEngine.UI.Image;
 
@@ -8,24 +9,28 @@ public class Card : MonoBehaviour
 	public bool hasBeenPlayed;
 	public bool isBeingChosen;
 	public int handIndex;
+    public TextMeshPro hpText; 
+    public TextMeshPro attackText;
 
-	public Vector3 origin;
-	//private Animator anim;
-	//private Animator camAnim;
+    public Vector3 origin;
+    //private Animator anim;
+    //private Animator camAnim;
 
-	//public GameObject effect;
-	//public GameObject hollowCircle;
+    //public GameObject effect;
+    //public GameObject hollowCircle;
 
-	internal double attack =5;
-    internal double hp=10;
-    internal double speed=7;
+    internal int hp = 10;
+    internal int attack = 5;
+    internal double speed = 7;
 
 
     private void Start()
 	{
-		// anim = GetComponent<Animator>();
-		// camAnim = Camera.main.GetComponent<Animator>();
-	}
+        hpText.text = $"{hp}";
+        attackText.text = $"{attack}";
+        // anim = GetComponent<Animator>();
+        // camAnim = Camera.main.GetComponent<Animator>();
+    }
 	private void OnMouseUp()
 	{
         if (isBeingChosen)
@@ -41,7 +46,8 @@ public class Card : MonoBehaviour
                 hasBeenPlayed = true;
                 GameManager.i.availableCardSlots[handIndex] = null;
                 handIndex = 0;
-                transform.position = (Vector3)currentPlacement;
+                GameManager.i.gameBoard[currentPlacement.x, currentPlacement.y] = this;
+                transform.position = new Vector3(currentPlacement.transform.position.x, currentPlacement.transform.position.y+1, currentPlacement.transform.position.z);
             }
         }
     }
@@ -63,14 +69,19 @@ public class Card : MonoBehaviour
 			
 		}
 	}
-
+    public void UpdateHp(int attack)
+    {
+        hp -= attack;
+        hpText.text = $"{hp}";
+    }
     public void Update()
     {
 		if (isBeingChosen)
 		{
             Vector3 mousePos = Input.mousePosition;
             mousePos.z = Camera.main.nearClipPlane;
-            transform.position = Camera.main.ScreenToWorldPoint(mousePos);
+            var newPos = Camera.main.ScreenToWorldPoint(mousePos);
+            transform.position = newPos;
         }
     }
  //   void MoveToDiscardPile()

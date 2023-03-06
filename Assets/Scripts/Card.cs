@@ -1,3 +1,4 @@
+using Assets.Scripts;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,37 +8,59 @@ using static UnityEngine.UI.Image;
 
 public class Card : Target
 {
+    public int id;
 	public bool hasBeenPlayed;
 	public bool isSelected;
     public bool isTeam;
+    public bool isViewMode;
+    public Card viewableCard;
     public bool hasSummonSickness = true;
 	public int handIndex;
+	public int attackType;
     public TextMeshPro attackText;
     public TextMeshPro costText;
     public TextMeshPro speedText;
+    public TextMeshPro abilityText;
     public GameObject disabled;
     public GameObject inAction;
     public GameObject cardText;
     public Vector3 origin;
-    //private Animator anim;
-    //private Animator camAnim;
-
-    //public GameObject effect;
-    //public GameObject hollowCircle;
-
     public int cost = 1;
     public int attack = 5;
     public double speed = 7;
-
-
+    public SpriteRenderer affinityColor;
+    public Sprite antimatter;
+    public Sprite electric;
+    public Sprite thermal;
+    public Sprite chemical;
+    public string ability = "None";
     private void Start()
 	{
-        hpText.text = $"{hp}";
+        setAffinity();
+        CurrentHp = maxHp;
+        hpText.text = $"{CurrentHp}";
         attackText.text = $"{attack}";
         costText.text = $"{cost}";
         speedText.text = $"{speed}";
-        // anim = GetComponent<Animator>();
-        // camAnim = Camera.main.GetComponent<Animator>();
+        abilityText.text = ability;
+    }
+    public virtual void setAffinity()
+    {
+        switch (affinity)
+        {
+            case (int)Enums.Affinities.Antimatter:
+                    affinityColor.sprite = antimatter;
+                break;
+            case (int)Enums.Affinities.Electrical:
+                    affinityColor.sprite = electric;
+                break;
+            case (int)Enums.Affinities.Thermal:
+                    affinityColor.sprite = thermal;
+                break;
+            case (int)Enums.Affinities.Chemical:
+                    affinityColor.sprite = chemical;
+                break;
+        }
     }
     public void AIPlayCard()
     {
@@ -56,7 +79,7 @@ public class Card : Target
         }
         else
         {
-            Die();
+            Destroy(this.gameObject);
         }
     }
 
@@ -66,10 +89,16 @@ public class Card : Target
         Destroy(this.gameObject);
     }
 
-    public override void updateColor()
+    public override void UpdateHp(int attack)
     {
-      
+        CurrentHp -= attack;
+        hpText.text = $"{CurrentHp}";
+        if (CurrentHp <= 0)
+        {
+            Die();
+        }
     }
+
     private void OnMouseUp()
 	{
         if (isSelected)
@@ -97,29 +126,72 @@ public class Card : Target
             }
         }
     }
+    public void OnMouseEnter()
+    {
+        if (!isViewMode && !isSelected && !hasBeenPlayed && GameManager.i.selectedCard == null)
+        {
+            viewableCard = ViewCard();
+        }
+    }
+    public void OnMouseExit()
+    {
+        if (viewableCard != null)
+        {
+            Destroy(viewableCard.gameObject);
+            viewableCard = null;
+        }
+        if (isViewMode)
+        {
+            Destroy(this.gameObject);
+        }
+    }
     private void OnMouseDown()
     {
-		if (hasBeenPlayed)
-		{
-			//show card stats
-		}
-		else
-		{
-            
-            if (!isSelected)
+        if (isViewMode)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            if (hasBeenPlayed)
             {
-                if (GameManager.i.CurrentMana >= cost)
-                {
-                    origin = transform.position;
-                    GameManager.i.selectedCard = this;
-                    isSelected = true;
-                }
+                ViewCard();
             }
-            //Instantiate(hollowCircle, transform.position, Quaternion.identity);
-			// camAnim.SetTrigger("shake");
-			
-		}
+            else
+            {
+
+                if (!isSelected)
+                {
+                    if (GameManager.i.CurrentMana >= cost)
+                    {
+                        origin = transform.position;
+                        GameManager.i.selectedCard = this;
+                        isSelected = true;
+                    }
+                }
+                //Instantiate(hollowCircle, transform.position, Quaternion.identity);
+                // camAnim.SetTrigger("shake");
+
+            }
+        }
 	}
+
+    private Card ViewCard()
+    {
+        Card infoCard = Instantiate(this, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 1, Camera.main.transform.position.z + 3), Camera.main.transform.rotation);
+        infoCard.cardText.SetActive(true);
+        infoCard.isViewMode = true;
+        foreach(var child in infoCard.GetComponentsInChildren<SpriteRenderer>()) {
+            child.sortingLayerName = "Popup";
+        }
+        foreach (var child in infoCard.GetComponentsInChildren<TextMeshPro>())
+        {
+            child.sortingLayerID = SortingLayer.NameToID("Popup");
+        }
+        infoCard.transform.localScale += new Vector3(3, 3, 3);
+        return infoCard;
+    }
+
     public void Update()
     {
 		if (isSelected)

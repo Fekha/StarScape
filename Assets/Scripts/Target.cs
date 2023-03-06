@@ -7,35 +7,20 @@ using UnityEngine;
 public class Target : MonoBehaviour
 {
     public int maxHp;
-    public int hp;
+    private int currentHp;
     public TextMeshPro hpText;
     public int x;
     public int y;
+    public int affinity = 0;
+
+    public int CurrentHp { get => currentHp; set => currentHp = value; }
+
     // Start is called before the first frame update
-    public void Start()
+
+    public virtual void UpdateHp(int attack)
     {
-        hpText.text = $"{hp}";
-        updateColor();
     }
-    public void UpdateHp(int attack)
-    {
-        hp -= attack;
-        hpText.text = $"{hp}";
-        updateColor();
-        if (hp <= 0)
-        {
-            Die();
-        }   
-    }
-    public virtual void updateColor()
-    {
-        if (((double)hp / (double)maxHp) < .3)
-            hpText.color = Color.red;
-        else if (((double)hp / (double)maxHp) < .6)
-            hpText.color = Color.yellow;
-        else
-            hpText.color = Color.green;
-    }
+
     public virtual void Die()
     {
        gameObject.SetActive(false);

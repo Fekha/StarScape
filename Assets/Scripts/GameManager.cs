@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
 	public GameObject popup;
 	public TextMeshProUGUI manaText;
 	public LineRenderer line;
+    private bool endingTurn = false;
 
 
     private Animator camAnim;
@@ -61,7 +62,7 @@ public class GameManager : MonoBehaviour
 			{
 				if (availableCardSlots[i] == null)
 				{
-                    var newCard = Instantiate(randomCard, cardSlots[i].position, cardSlots[i].rotation);
+                    var newCard = Instantiate(randomCard, cardSlots[i].transform.position, cardSlots[i].rotation);
                     newCard.isTeam = true;
                     newCard.handIndex = i;
                     availableCardSlots[i] = newCard;
@@ -89,7 +90,10 @@ public class GameManager : MonoBehaviour
     }
 	public void EndTurn()
 	{
-        StartCoroutine(StartPhases());
+        if (!endingTurn) {
+            endingTurn = true;
+            StartCoroutine(StartPhases());
+        }
     }
 
     private IEnumerator StartPhases()
@@ -101,23 +105,30 @@ public class GameManager : MonoBehaviour
         List<Card> activeCards = GetActiveCards();
         foreach (var card in activeCards.OrderByDescending(x => x.speed))
         {
-            if (!card.hasSummonSickness && card.hp > 0 )
+            if (!card.hasSummonSickness && card.CurrentHp > 0 )
             {
-                var enemy = getTarget(card.x, card.y);
+                var enemy = getTarget(card);
                 line.SetPosition(0, card.transform.position);
                 line.SetPosition(1, enemy.transform.position);
-                line.gameObject.SetActive(true);
                 card.inAction.SetActive(true);
+                yield return new WaitForSeconds(.5f);
+                line.gameObject.SetActive(true);
                 yield return new WaitForSeconds(.25f);
                 card.inAction.SetActive(false);
                 line.gameObject.SetActive(false);
-                enemy.UpdateHp(card.attack);
+                enemy.UpdateHp(getAttackValue(enemy, card));
                 yield return new WaitForSeconds(.25f);
             }
         }
 
         //check if you won
-        if (enemyBases.Count(x => x.hp > 0) < 2)
+        if (enemyBases.Count(x => x.CurrentHp > 0) < 2)
+        {
+            popup.SetActive(true);
+        }
+
+        //check if enemy won
+        if (teamBases.Count(x => x.CurrentHp > 0) < 2)
         {
             popup.SetActive(true);
         }
@@ -135,6 +146,32 @@ public class GameManager : MonoBehaviour
             card.hasSummonSickness = false;
             card.disabled.SetActive(false);
         }
+        endingTurn = false;
+    }
+
+    private int getAttackValue(Target enemy, Card card)
+    {
+        var attack = card.attack;
+        //check affinities
+        if ((card.affinity == 1 && enemy.affinity == 2) || (card.affinity == 2 && enemy.affinity == 3) || (card.affinity == 3 && enemy.affinity == 1))
+        {
+            attack = (int)(attack * 1.25);
+        }
+        else if ((card.affinity == 2 && enemy.affinity == 1) || (card.affinity == 3 && enemy.affinity == 2) || (card.affinity == 1 && enemy.affinity == 3))
+        {
+            attack = (int)(attack * .75);
+        }
+        //check for crits and misfires
+        var rand = Random.Range(0, 20);
+        if (rand == 0)
+        {
+            attack = (int)(attack * .5);
+        }
+        else if (rand == 18 || rand == 19)
+        {
+            attack = (int)(attack * 1.25);
+        }
+        return attack;
     }
 
     private IEnumerator TakeCPUTurn()
@@ -146,29 +183,44 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(.25f);
     }
 
-    private Target getTarget(int x, int y)
+    private Target getTarget(Card card)
     {
-        if (y < 3)
+        bool hasSkipAttack = card.attackType == 1;
+        if (card.y < 3)
         {
             for (int i = 3; i < 6; i++)
             {
-                if (gameBoard[x, i] != null)
+                if (gameBoard[card.x, i] != null)
                 {
-                    return gameBoard[x, i];
+                    if (hasSkipAttack)
+                    {
+                        hasSkipAttack = false;
+                    }
+                    else
+                    {
+                        return gameBoard[card.x, i];
+                    }
                 }
             }
-            return enemyBases[x];
+            return enemyBases[card.x];
         }
         else
         {
             for (int i = 2; i >= 0; i--)
             {
-                if (gameBoard[x, i] != null)
+                if (gameBoard[card.x, i] != null)
                 {
-                    return gameBoard[x, i];
+                    if (hasSkipAttack)
+                    {
+                        hasSkipAttack = false;
+                    }
+                    else
+                    {
+                        return gameBoard[card.x, i];
+                    }
                 }
             }
-            return teamBases[x];
+            return teamBases[card.x];
         }
     }
 

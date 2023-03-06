@@ -41,6 +41,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: New Layer 1
+  - name: Board
+    uniqueID: 2003332395
+    locked: 0
+  - name: Card
     uniqueID: 277547115
+    locked: 0
+  - name: Popup
+    uniqueID: 725540579
     locked: 0

@@ -25,23 +25,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
+      propertyPath: id
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
+        type: 3}
       propertyPath: cost
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: maxHp
-      value: 15
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: speed
-      value: 6
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: attack
-      value: 10
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
+        type: 3}
+      propertyPath: ability
+      value: Skip
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
+        type: 3}
+      propertyPath: affinity
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
+        type: 3}
+      propertyPath: attackType
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}

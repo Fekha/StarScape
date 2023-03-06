@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2965096553398637317}
-  - component: {fileID: 3575528585034832793}
   - component: {fileID: 8259517229376942252}
+  - component: {fileID: 1834351033858555597}
   m_Layer: 0
   m_Name: HomeBase
   m_TagString: Untagged
@@ -33,23 +33,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!114 &3575528585034832793
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2384817140751972936}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86211d0a9066e6844abdf959b42269b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHp: 50
-  hp: 50
-  hpText: {fileID: 8470753047008210586}
-  x: 0
-  y: 0
 --- !u!212 &8259517229376942252
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -102,6 +85,28 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1834351033858555597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2384817140751972936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba5cde40e27aaa34081785229e6c8fb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHp: 50
+  hpText: {fileID: 0}
+  x: 0
+  y: 0
+  affinity: 0
+  affinityColor: {fileID: 0}
+  antimatter: {fileID: 21300000, guid: 94011348dcdabe043a316c9d4815a307, type: 3}
+  electric: {fileID: 21300000, guid: 1671da4ce27690940a2023f6fba897e4, type: 3}
+  thermal: {fileID: 21300000, guid: 1bd6ee69cd856364384251f415c36b38, type: 3}
+  chemical: {fileID: 21300000, guid: 261986e0afc1a2f42943ce855fd604b4, type: 3}
 --- !u!1 &3611194253684770446
 GameObject:
   m_ObjectHideFlags: 0

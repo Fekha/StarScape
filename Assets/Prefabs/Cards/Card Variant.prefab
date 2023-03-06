@@ -25,23 +25,38 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
+      propertyPath: id
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
+        type: 3}
       propertyPath: cost
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: maxHp
-      value: 7
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: speed
-      value: 7
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: attack
-      value: 7
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
+        type: 3}
+      propertyPath: ability
+      value: None
+      objectReference: {fileID: 0}
+    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
+        type: 3}
+      propertyPath: affinity
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
@@ -122,7 +137,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 9e2e19756fd989f43a41efcd17d56603,
+      objectReference: {fileID: 21300000, guid: 4e0ef0c48c31e9d469c666018a6a539e,
         type: 3}
     - target: {fileID: 4979346724500827238, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}

@@ -1,17 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using static UnityEngine.UI.Image;
 
-public class Card : MonoBehaviour
+public class Card : Target
 {
 	public bool hasBeenPlayed;
-	public bool isBeingChosen;
+	public bool isSelected;
+    public bool isTeam;
+    public bool hasSummonSickness = true;
 	public int handIndex;
-    public TextMeshPro hpText; 
     public TextMeshPro attackText;
-
+    public TextMeshPro costText;
+    public TextMeshPro speedText;
+    public GameObject disabled;
+    public GameObject inAction;
+    public GameObject cardText;
     public Vector3 origin;
     //private Animator anim;
     //private Animator camAnim;
@@ -19,35 +25,75 @@ public class Card : MonoBehaviour
     //public GameObject effect;
     //public GameObject hollowCircle;
 
-    internal int hp = 10;
-    internal int attack = 5;
-    internal double speed = 7;
+    public int cost = 1;
+    public int attack = 5;
+    public double speed = 7;
 
 
     private void Start()
 	{
         hpText.text = $"{hp}";
         attackText.text = $"{attack}";
+        costText.text = $"{cost}";
+        speedText.text = $"{speed}";
         // anim = GetComponent<Animator>();
         // camAnim = Camera.main.GetComponent<Animator>();
     }
-	private void OnMouseUp()
-	{
-        if (isBeingChosen)
+    public void AIPlayCard()
+    {
+        if (hasSummonSickness)
+            disabled.SetActive(true);
+
+        cardText.SetActive(false);
+        hasBeenPlayed = true;
+        x = Random.Range(0, 3);
+        y = Random.Range(3, 6);
+        if (GameManager.i.gameBoard[x, y] == null)
         {
-            isBeingChosen = false;
-			var currentPlacement = GameManager.i.getHighlightedPlacement();
+            GameManager.i.gameBoard[x, y] = this;
+            var placement = GameManager.i.placements.FirstOrDefault(c => c.x == x && c.y == y);
+            transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y + .1f, placement.transform.position.z);
+        }
+        else
+        {
+            Die();
+        }
+    }
+
+    public override void Die()
+    {
+        GameManager.i.gameBoard[x, y] = null;
+        Destroy(this.gameObject);
+    }
+
+    public override void updateColor()
+    {
+      
+    }
+    private void OnMouseUp()
+	{
+        if (isSelected)
+        {
+            isSelected = false;
+            GameManager.i.selectedCard = null;
+            var currentPlacement = GameManager.i.getHighlightedPlacement();
             if (currentPlacement == null)
 			{
                 transform.position = origin;
             }
 			else
 			{
-                hasBeenPlayed = true;
+                if(hasSummonSickness)
+                    disabled.SetActive(true);
+
+                cardText.SetActive(false);
                 GameManager.i.availableCardSlots[handIndex] = null;
-                handIndex = 0;
-                GameManager.i.gameBoard[currentPlacement.x, currentPlacement.y] = this;
-                transform.position = new Vector3(currentPlacement.transform.position.x, currentPlacement.transform.position.y+1, currentPlacement.transform.position.z);
+                GameManager.i.UpdateMana(cost);
+                hasBeenPlayed = true;
+                x = currentPlacement.x;
+                y = currentPlacement.y;
+                GameManager.i.gameBoard[x,y] = this;
+                transform.position = new Vector3(currentPlacement.transform.position.x, currentPlacement.transform.position.y+.1f, currentPlacement.transform.position.z);
             }
         }
     }
@@ -59,24 +105,24 @@ public class Card : MonoBehaviour
 		}
 		else
 		{
-            if (!isBeingChosen)
+            
+            if (!isSelected)
             {
-                origin = transform.position;
-                isBeingChosen = true;
+                if (GameManager.i.CurrentMana >= cost)
+                {
+                    origin = transform.position;
+                    GameManager.i.selectedCard = this;
+                    isSelected = true;
+                }
             }
             //Instantiate(hollowCircle, transform.position, Quaternion.identity);
 			// camAnim.SetTrigger("shake");
 			
 		}
 	}
-    public void UpdateHp(int attack)
-    {
-        hp -= attack;
-        hpText.text = $"{hp}";
-    }
     public void Update()
     {
-		if (isBeingChosen)
+		if (isSelected)
 		{
             Vector3 mousePos = Input.mousePosition;
             mousePos.z = Camera.main.nearClipPlane;
@@ -84,10 +130,5 @@ public class Card : MonoBehaviour
             transform.position = newPos;
         }
     }
- //   void MoveToDiscardPile()
-	//{
-	//	Instantiate(effect, transform.position, Quaternion.identity);
-	//	gm.discardPile.Add(this);
-	//	gameObject.SetActive(false);
-	//}
+
 }

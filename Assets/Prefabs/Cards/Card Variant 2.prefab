@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &2645113851340089100
+--- !u!1001 &1211512136052202361
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -10,38 +10,33 @@ PrefabInstance:
     - target: {fileID: 196572362281845334, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: m_Name
-      value: Card (4) Variant
+      value: Card Variant 2
       objectReference: {fileID: 0}
     - target: {fileID: 232972788841019143, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 5610456433865955097, guid: b922d3369baae4e479ff1294d644fb88,
+      objectReference: {fileID: -1145144668836272637, guid: b922d3369baae4e479ff1294d644fb88,
         type: 3}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: hp
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
-        type: 3}
-      propertyPath: cost
-      value: 2
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: maxHp
-      value: 15
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: speed
-      value: 6
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: attack
-      value: 10
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1023904853984257729, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
@@ -76,7 +71,7 @@ PrefabInstance:
     - target: {fileID: 2385181695201347091, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.47
       objectReference: {fileID: 0}
     - target: {fileID: 2385181695201347091, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
@@ -122,7 +117,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: d130bd1ef20bc0c4380f1f9ceb7a1de3,
+      objectReference: {fileID: 21300000, guid: 1aaa52a30e1346e4490ab5d926e8bf67,
         type: 3}
     - target: {fileID: 4979346724500827238, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
@@ -132,12 +127,12 @@ PrefabInstance:
     - target: {fileID: 6717292060567749383, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: m_SpriteTilingProperty.oldSize.x
-      value: 3.5799997
+      value: 3.59
       objectReference: {fileID: 0}
     - target: {fileID: 6717292060567749383, guid: ad587e0b70be0bb4880d92617c9575a7,
         type: 3}
       propertyPath: m_SpriteTilingProperty.oldSize.y
-      value: 4.360887
+      value: 4.3708887
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ad587e0b70be0bb4880d92617c9575a7, type: 3}

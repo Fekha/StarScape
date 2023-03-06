@@ -11,7 +11,7 @@ public class CardPlacement : MonoBehaviour
     public int y;
     private void OnMouseOver()
     {
-        if (isTeam)
+        if (isTeam && GameManager.i.selectedCard != null)
         {
             GetComponent<MeshRenderer>().material = highlightMaterial;
             GameManager.i.setHighlightedPlacement(this);

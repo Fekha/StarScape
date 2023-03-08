@@ -20,5 +20,11 @@ namespace Assets.Scripts
             First,
             Skip
         }
+
+        public enum Ability
+        {
+            None,
+            Slow
+        }
     }
 }

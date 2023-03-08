@@ -4,19 +4,25 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using static UnityEngine.UI.Image;
 
 public class Card : Target
 {
     public int id;
-	public bool hasBeenPlayed;
-	public bool isSelected;
+    public int cost = 1;
+    public int attack = 5;
+    public double speed = 7;
+    public int attackPattern;
+    public string ability = "None";
+    public bool hasBeenPlayed;
+    public SpriteRenderer background;
+    public SpriteRenderer affinityColor;
+
+    public bool isSelected;
     public bool isTeam;
     public bool isViewMode;
     public Card viewableCard;
     public bool hasSummonSickness = true;
 	public int handIndex;
-	public int attackType;
     public TextMeshPro attackText;
     public TextMeshPro costText;
     public TextMeshPro speedText;
@@ -24,19 +30,37 @@ public class Card : Target
     public GameObject disabled;
     public GameObject inAction;
     public GameObject cardText;
-    public Vector3 origin;
-    public int cost = 1;
-    public int attack = 5;
-    public double speed = 7;
-    public SpriteRenderer affinityColor;
+    public Vector3 originPos;
+    public Quaternion originRot;
     public Sprite antimatter;
     public Sprite electric;
     public Sprite thermal;
     public Sprite chemical;
-    public string ability = "None";
+
+    internal void UpdateStats(CardStats stat)
+    {
+        this.id = stat.id;
+        this.cost = stat.cost;
+        this.maxHp = stat.maxHp;
+        this.attack = stat.attack;
+        this.speed = stat.speed;
+        this.attackPattern = stat.attackPattern;
+        this.affinity = stat.affinity;
+        if (stat.abilities.Contains(1))
+        {
+            hasSummonSickness = true;
+        }
+        else
+        {
+            hasSummonSickness = false;
+        }
+        this.ability = stat.abilityText;
+    }
+
     private void Start()
 	{
         setAffinity();
+        background.sprite = GameManager.i.cardSprites[id];
         CurrentHp = maxHp;
         hpText.text = $"{CurrentHp}";
         attackText.text = $"{attack}";
@@ -62,25 +86,19 @@ public class Card : Target
                 break;
         }
     }
-    public void AIPlayCard()
+    public void AIPlayCard(int cardX, int cardY)
     {
+        x = cardX; y=cardY;
         if (hasSummonSickness)
             disabled.SetActive(true);
 
         cardText.SetActive(false);
         hasBeenPlayed = true;
-        x = Random.Range(0, 3);
-        y = Random.Range(3, 6);
-        if (GameManager.i.gameBoard[x, y] == null)
-        {
-            GameManager.i.gameBoard[x, y] = this;
-            var placement = GameManager.i.placements.FirstOrDefault(c => c.x == x && c.y == y);
-            transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y + .1f, placement.transform.position.z);
-        }
-        else
-        {
-            Destroy(this.gameObject);
-        }
+
+        GameManager.i.gameBoard[cardX, cardY] = this;
+        var placement = GameManager.i.placements.FirstOrDefault(c => c.x == cardX && c.y == cardY);
+        transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y + .1f, placement.transform.position.z);
+
     }
 
     public override void Die()
@@ -108,7 +126,8 @@ public class Card : Target
             var currentPlacement = GameManager.i.getHighlightedPlacement();
             if (currentPlacement == null)
 			{
-                transform.position = origin;
+                transform.position = originPos;
+                transform.rotation = originRot;
             }
 			else
 			{
@@ -123,9 +142,43 @@ public class Card : Target
                 y = currentPlacement.y;
                 GameManager.i.gameBoard[x,y] = this;
                 transform.position = new Vector3(currentPlacement.transform.position.x, currentPlacement.transform.position.y+.1f, currentPlacement.transform.position.z);
+                GameManager.i.ReorganizeHand();
             }
         }
     }
+    private void OnMouseDown()
+    {
+        if (isViewMode)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            if (hasBeenPlayed && viewableCard == null)
+            {
+                ViewCard();
+            }
+            else
+            {
+
+                if (!isSelected)
+                {
+                    if (GameManager.i.CurrentMana >= cost)
+                    {
+                        originPos = transform.position;
+                        originRot = transform.rotation;
+                        GameManager.i.selectedCard = this;
+                        isSelected = true;
+                        transform.rotation = Camera.main.transform.rotation;
+                    }
+                }
+                //Instantiate(hollowCircle, transform.position, Quaternion.identity);
+                // camAnim.SetTrigger("shake");
+
+            }
+        }
+	}
+
     public void OnMouseEnter()
     {
         if (!isViewMode && !isSelected && !hasBeenPlayed && GameManager.i.selectedCard == null)
@@ -145,36 +198,6 @@ public class Card : Target
             Destroy(this.gameObject);
         }
     }
-    private void OnMouseDown()
-    {
-        if (isViewMode)
-        {
-            Destroy(this.gameObject);
-        }
-        else
-        {
-            if (hasBeenPlayed)
-            {
-                ViewCard();
-            }
-            else
-            {
-
-                if (!isSelected)
-                {
-                    if (GameManager.i.CurrentMana >= cost)
-                    {
-                        origin = transform.position;
-                        GameManager.i.selectedCard = this;
-                        isSelected = true;
-                    }
-                }
-                //Instantiate(hollowCircle, transform.position, Quaternion.identity);
-                // camAnim.SetTrigger("shake");
-
-            }
-        }
-	}
 
     private Card ViewCard()
     {

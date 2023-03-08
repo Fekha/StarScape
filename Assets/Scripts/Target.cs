@@ -12,7 +12,7 @@ public class Target : MonoBehaviour
     public int x;
     public int y;
     public int affinity = 0;
-
+    public GameObject beingAttacked;
     public int CurrentHp { get => currentHp; set => currentHp = value; }
 
     // Start is called before the first frame update

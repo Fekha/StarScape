@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
 	private int currentMana = 1;
 	public Transform[] cardSlots;
 	public Card[] availableCardSlots;
-	public Card[,] gameBoard = new Card[3,8];
+	internal Card[,] gameBoard = new Card[3,8];
     public List<CardPlacement> placements = new List<CardPlacement>();
 	public Target[] enemyBases = new Target[3];
 	public Target[] teamBases = new Target[3];
@@ -100,27 +100,27 @@ public class GameManager : MonoBehaviour
 
         //attack
         List<Card> activeCards = GetActiveCards();
-        foreach (var card in activeCards.OrderByDescending(x => x.speed))
+        foreach (var attacker in activeCards.OrderByDescending(x => x.speed))
         {
-            if (!card.hasSummonSickness && card.CurrentHp > 0)
+            if (!attacker.hasSummonSickness && attacker.CurrentHp > 0)
             {
-                var enemy = getTarget(card);
-                if (enemy != null)
-                {
-                    var attack = getAttackValue(enemy, card);
-                    var variance = card.isTeam ? .9f : -.9f;
-                    line.SetPosition(0, new Vector3(card.transform.position.x, card.transform.position.y + 1, card.transform.position.z + variance));
-                    line.SetPosition(1, new Vector3(enemy.transform.position.x, enemy.transform.position.y + 1, enemy.transform.position.z));
-                    card.inAction.SetActive(true);
+                var targets = getTargets(attacker);
+                foreach(var target in targets) {
+                    var attack = getAttackValue(target, attacker);
+                    var laserVariance = attacker.isTeam ? .9f : -.9f;
+                    line.SetPosition(0, new Vector3(attacker.transform.position.x, attacker.transform.position.y + 1, attacker.transform.position.z + laserVariance));
+                    line.SetPosition(1, new Vector3(target.transform.position.x, target.transform.position.y + 1, target.transform.position.z));
+                    attacker.inAction.SetActive(true);
                     yield return new WaitForSeconds(.25f);
-                    enemy.beingAttacked.SetActive(true);
+                    target.beingAttacked.SetActive(true);
                     line.gameObject.SetActive(true);
                     yield return new WaitForSeconds(.25f);
                     line.gameObject.SetActive(false);
                     yield return new WaitForSeconds(.25f);
-                    card.inAction.SetActive(false);
-                    enemy.beingAttacked.SetActive(false);
-                    enemy.UpdateHp(attack);
+                    attacker.inAction.SetActive(false);
+                    target.beingAttacked.SetActive(false);
+                    target.UpdateHp(attack);
+                    attacker.CheckForAbilities(attack);
                     yield return new WaitForSeconds(.25f);
                     line.material = laserBaseMaterial;
                 }
@@ -145,7 +145,7 @@ public class GameManager : MonoBehaviour
             maxMana++;
         currentMana = maxMana;
         UpdateMana();
-        //reget to avoid referencing dead enemies
+        //re-get to avoid referencing dead enemies
         activeCards = GetActiveCards();
         foreach (var card in activeCards)
         {
@@ -157,7 +157,7 @@ public class GameManager : MonoBehaviour
 
     private int getAttackValue(Target enemy, Card card)
     {
-        var attack = card.attack;
+        var attack = card.power;
         //check affinities
         if ((card.affinity == 1 && enemy.affinity == 2) || (card.affinity == 2 && enemy.affinity == 3) || (card.affinity == 3 && enemy.affinity == 1))
         {
@@ -219,59 +219,71 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(.25f);
     }
 
-    private Target getTarget(Card card)
+    private List<Target> getTargets(Card attacker)
     {
-        bool hasSkipAttack = card.attackPattern == 1;
-        if (card.y < 4)
+        //God please forgive me for these 'for' and 'if' statements
+        var targetsToReturn = new List<Target>();
+        var hasSkippedAttack = false;
+        if (!attacker.attackOnlyStation)
         {
-            for (int i = 4; i <= 7; i++)
+            for (int i = attacker.isTeam ? 4 :3; attacker.isTeam ? i <= 7 : i >= 0; i = i + (attacker.isTeam ? 1:-1))
             {
-                if (gameBoard[card.x, i] != null)
+                if (gameBoard[attacker.x, i] != null)
                 {
-                    if (hasSkipAttack)
+                    if (attacker.attackWholeColumn)
                     {
-                        hasSkipAttack = false;
+                        targetsToReturn.Add(gameBoard[attacker.x, i]);
                     }
-                    else
+                    else if (!gameBoard[attacker.x, i].hasStealth)
                     {
-                        return gameBoard[card.x, i];
+                        if (attacker.attackSkipFirst && !hasSkippedAttack)
+                        {
+                            hasSkippedAttack = true;
+                        }
+                        else
+                        {
+                            targetsToReturn.Add(gameBoard[attacker.x, i]);
+                            if (attacker.attackConsecutive1)
+                            {
+                                //check if at end of loop
+                                if ((attacker.isTeam && i == 7) || (!attacker.isTeam && i == 0))
+                                {
+                                    //leave loop so that it adds the station
+                                    break;
+                                }
+                                //check for the next one, add it, and return
+                                else if (gameBoard[attacker.x, i + (attacker.isTeam ? 1 : -1)] != null)
+                                {
+                                    targetsToReturn.Add(gameBoard[attacker.x, (attacker.isTeam ? 1 : -1)]);
+                                    return targetsToReturn;
+                                }
+                            } else if (attacker.attackLastInColumn) {
+                                //collecting all targets and determining last at end 
+                            }
+                            else
+                            {
+                                return targetsToReturn;
+                            }
+                        }
                     }
                 }
             }
-            if (enemyBases[card.x].CurrentHp > 0)
-            {
-                return enemyBases[card.x];
-            }
-            return null;
         }
-        else
+        if (attacker.attackLastInColumn && targetsToReturn.Count > 0)
         {
-            for (int i = 3; i >= 0; i--)
-            {
-                if (gameBoard[card.x, i] != null)
-                {
-                    if (hasSkipAttack)
-                    {
-                        hasSkipAttack = false;
-                    }
-                    else
-                    {
-                        return gameBoard[card.x, i];
-                    }
-                }
-            }
-            if (teamBases[card.x].CurrentHp > 0)
-            {
-                return teamBases[card.x];
-            }
-            return null;
+            return new List<Target>() { targetsToReturn.LastOrDefault() };
         }
+        if ((attacker.isTeam ? enemyBases[attacker.x].CurrentHp: teamBases[attacker.x].CurrentHp) > 0)
+        {
+            targetsToReturn.Add(attacker.isTeam ? enemyBases[attacker.x] : teamBases[attacker.x]);
+        }
+        return targetsToReturn;
     }
 
     public void UpdateMana(int cost = 0)
 	{
         currentMana -= cost;
-        manaText.text = $"{currentMana}M Credits";
+        manaText.text = $"{currentMana}{(currentMana==0?"":"M")} Credits";
         foreach (var cardInHand in availableCardSlots.Where(x => x != null))
         {
 			if (cardInHand.cost > currentMana)
@@ -289,17 +301,10 @@ public class GameManager : MonoBehaviour
     {
         deck = new List<CardStats>()
         {
-            new CardStats(0,0,1,20,3,3,0,new List<int>() { 1 },"Slow"),
-            new CardStats(1,1,1,11,4,5),
-            new CardStats(2,2,1,4,6,10,1,null,"Skip"),
-            new CardStats(3,3,1,7,7,7),
-            new CardStats(4,3,2,24,6,5),
-            new CardStats(5,2,2,18,12,6,1,null,"Skip"),
-            new CardStats(6,1,2,11,11,11),
-            new CardStats(7,0,2,2,25,16,0,new List<int>() { 1 },"Slow"),
-            new CardStats(8,0,3,40,2,2),
-            new CardStats(9,1,3,25,4,14),
-            new CardStats(10,2,3,15,15,15,1,null,"Skip")
+            new CardStats(16,3,1,4,4,4,2,"Last",new List<int>() {2,3},"None"),
+            new CardStats(17,2,1,2,6,5,3,"Station",new List<int>() {4,5},"None"),
+            new CardStats(18,1,1,10,4,5,4,"Consecutive 1",new List<int>() {3},"Slow"),
+            new CardStats(19,0,1,1,2,8,5,"Whole Column",new List<int>() {1,2,3,4,5},"None"),
         };
     }
 

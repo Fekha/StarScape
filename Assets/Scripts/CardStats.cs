@@ -16,8 +16,9 @@ namespace Assets.Scripts
         public int attackPattern;
         public int affinity;
         public string abilityText;
+        public string attackText;
         public List<int> abilities;
-        public CardStats(int id, int affinity, int cost, int maxHp, int attack, int speed, int attackPattern = (int)Enums.AttackTypes.First, List<int> abilities = null, string abilityText = "None") {
+        public CardStats(int id, int affinity, int cost, int maxHp, int attack, int speed, int attackPattern, string attackText, List<int> abilities, string abilityText) {
             this.id = id;
             this.cost = cost;
             this.maxHp = maxHp; 
@@ -25,12 +26,9 @@ namespace Assets.Scripts
             this.speed = speed;
             this.attackPattern = attackPattern;
             this.affinity = affinity;
-            if (abilities == null)
-            {
-                abilities = new List<int>() { (int)Enums.Ability.None };
-            }
             this.abilities = abilities;
             this.abilityText = abilityText;
+            this.attackText = abilityText;
         }
     }
 }

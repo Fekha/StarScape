@@ -1,4 +1,5 @@
 using Assets.Scripts;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,55 +8,52 @@ using UnityEngine;
 
 public class Card : Target
 {
+    //Card Stats
     public int id;
     public int cost = 1;
-    public int attack = 5;
+    public int power = 5;
     public double speed = 7;
-    public int attackPattern;
-    public string ability = "None";
-    public bool hasBeenPlayed;
-    public SpriteRenderer background;
-    public SpriteRenderer affinityColor;
+    public string abilityText = "None";
+    public string attackText = "First";
 
+    //Card Attack Patterns
+    public bool attackConsecutive1 = false;
+    public bool attackWholeColumn = false;
+    public bool attackSkipFirst = false;
+    public bool attackLastInColumn = false;
+    public bool attackOnlyStation = false;
+
+    //Card Abilities
+    public bool hasSummonSickness = false;
+    public bool hasStealth = false;
+    public int burnout = 0;
+    public double drain = 0;
+    public int scavenger = 0;
+
+    //Card variables
     public bool isSelected;
     public bool isTeam;
     public bool isViewMode;
+    public int handIndex;
+    public bool hasBeenPlayed;
+    public Vector3 originPos;
+    public Quaternion originRot;
+
+    //card visuals
     public Card viewableCard;
-    public bool hasSummonSickness = true;
-	public int handIndex;
-    public TextMeshPro attackText;
+    public SpriteRenderer background;
+    public SpriteRenderer affinityColor;
+    public TextMeshPro attackTextObj;
     public TextMeshPro costText;
     public TextMeshPro speedText;
-    public TextMeshPro abilityText;
+    public TextMeshPro abilityTextObj;
     public GameObject disabled;
     public GameObject inAction;
     public GameObject cardText;
-    public Vector3 originPos;
-    public Quaternion originRot;
     public Sprite antimatter;
     public Sprite electric;
     public Sprite thermal;
     public Sprite chemical;
-
-    internal void UpdateStats(CardStats stat)
-    {
-        this.id = stat.id;
-        this.cost = stat.cost;
-        this.maxHp = stat.maxHp;
-        this.attack = stat.attack;
-        this.speed = stat.speed;
-        this.attackPattern = stat.attackPattern;
-        this.affinity = stat.affinity;
-        if (stat.abilities.Contains(1))
-        {
-            hasSummonSickness = true;
-        }
-        else
-        {
-            hasSummonSickness = false;
-        }
-        this.ability = stat.abilityText;
-    }
 
     private void Start()
 	{
@@ -63,60 +61,21 @@ public class Card : Target
         background.sprite = GameManager.i.cardSprites[id];
         CurrentHp = maxHp;
         hpText.text = $"{CurrentHp}";
-        attackText.text = $"{attack}";
-        costText.text = $"{cost}";
+        attackTextObj.text = $"{power}";
+        costText.text = $"{cost}M";
         speedText.text = $"{speed}";
-        abilityText.text = ability;
+        abilityTextObj.text = abilityText;
     }
-    public virtual void setAffinity()
+    public void Update()
     {
-        switch (affinity)
+        if (isSelected)
         {
-            case (int)Enums.Affinities.Antimatter:
-                    affinityColor.sprite = antimatter;
-                break;
-            case (int)Enums.Affinities.Electrical:
-                    affinityColor.sprite = electric;
-                break;
-            case (int)Enums.Affinities.Thermal:
-                    affinityColor.sprite = thermal;
-                break;
-            case (int)Enums.Affinities.Chemical:
-                    affinityColor.sprite = chemical;
-                break;
+            Vector3 mousePos = Input.mousePosition;
+            mousePos.z = Camera.main.nearClipPlane;
+            var newPos = Camera.main.ScreenToWorldPoint(mousePos);
+            transform.position = newPos;
         }
     }
-    public void AIPlayCard(int cardX, int cardY)
-    {
-        x = cardX; y=cardY;
-        if (hasSummonSickness)
-            disabled.SetActive(true);
-
-        cardText.SetActive(false);
-        hasBeenPlayed = true;
-
-        GameManager.i.gameBoard[cardX, cardY] = this;
-        var placement = GameManager.i.placements.FirstOrDefault(c => c.x == cardX && c.y == cardY);
-        transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y + .1f, placement.transform.position.z);
-
-    }
-
-    public override void Die()
-    {
-        GameManager.i.gameBoard[x, y] = null;
-        Destroy(this.gameObject);
-    }
-
-    public override void UpdateHp(int attack)
-    {
-        CurrentHp -= attack;
-        hpText.text = $"{CurrentHp}";
-        if (CurrentHp <= 0)
-        {
-            Die();
-        }
-    }
-
     private void OnMouseUp()
 	{
         if (isSelected)
@@ -199,6 +158,113 @@ public class Card : Target
         }
     }
 
+    internal void UpdateStats(CardStats stat)
+    {
+        id = stat.id;
+        cost = stat.cost;
+        maxHp = stat.maxHp;
+        power = stat.attack;
+        speed = stat.speed;
+        affinity = stat.affinity;
+        setAbilities(stat.abilities);
+        setAttackPattern(stat.attackPattern);
+        abilityText = stat.abilityText;
+        attackText = stat.attackText;
+    }
+
+    private void setAttackPattern(int attackPattern)
+    {
+        switch (attackPattern) {
+            case 1: attackSkipFirst = true; break;
+            case 2: attackLastInColumn = true; break;
+            case 3: attackOnlyStation = true; break;
+            case 4: attackConsecutive1 = true; break;
+            case 5: attackWholeColumn = true; break;
+        }
+    }
+
+    private void setAbilities(List<int> abilities)
+    {
+        if (abilities.Contains(1))
+        {
+            hasSummonSickness = true;
+        }
+        if (abilities.Contains(2))
+        {
+            burnout = 2;
+        }
+        if (abilities.Contains(3))
+        {
+            hasStealth = true;
+        }
+        if (abilities.Contains(4))
+        {
+            drain = -.1;
+        }
+        if (abilities.Contains(5))
+        {
+            scavenger = 2;
+        }
+    }
+
+    public virtual void setAffinity()
+    {
+        switch (affinity)
+        {
+            case (int)Enums.Affinities.Antimatter:
+                affinityColor.sprite = antimatter;
+                break;
+            case (int)Enums.Affinities.Electrical:
+                affinityColor.sprite = electric;
+                break;
+            case (int)Enums.Affinities.Thermal:
+                affinityColor.sprite = thermal;
+                break;
+            case (int)Enums.Affinities.Chemical:
+                affinityColor.sprite = chemical;
+                break;
+        }
+    }
+    public void AIPlayCard(int cardX, int cardY)
+    {
+        x = cardX; y = cardY;
+        if (hasSummonSickness)
+            disabled.SetActive(true);
+
+        cardText.SetActive(false);
+        hasBeenPlayed = true;
+
+        GameManager.i.gameBoard[cardX, cardY] = this;
+        var placement = GameManager.i.placements.FirstOrDefault(c => c.x == cardX && c.y == cardY);
+        transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y + .1f, placement.transform.position.z);
+
+    }
+
+    public override void Die()
+    {
+        GameManager.i.gameBoard[x, y] = null;
+        Destroy(this.gameObject);
+    }
+
+    public override void UpdateHp(int attack)
+    {
+        CurrentHp -= attack;
+        if (CurrentHp > maxHp)
+        {
+            CurrentHp = maxHp;
+        }
+        hpText.text = $"{CurrentHp}";
+        if (CurrentHp <= 0)
+        {
+            Die();
+        }
+    }
+    public void CheckForAbilities(int attack)
+    {
+        UpdateHp(burnout);
+        UpdateHp((int)(attack * drain));
+        power += scavenger;
+    }
     private Card ViewCard()
     {
         Card infoCard = Instantiate(this, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 1, Camera.main.transform.position.z + 3), Camera.main.transform.rotation);
@@ -215,15 +281,6 @@ public class Card : Target
         return infoCard;
     }
 
-    public void Update()
-    {
-		if (isSelected)
-		{
-            Vector3 mousePos = Input.mousePosition;
-            mousePos.z = Camera.main.nearClipPlane;
-            var newPos = Camera.main.ScreenToWorldPoint(mousePos);
-            transform.position = newPos;
-        }
-    }
+
 
 }

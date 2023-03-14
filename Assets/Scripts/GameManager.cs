@@ -106,9 +106,10 @@ public class GameManager : MonoBehaviour
                 var targets = getTargets(attacker);
                 foreach(var target in targets) {
                     var attack = getAttackValue(target, attacker);
-                    var laserVariance = attacker.isTeam ? .9f : -.9f;
-                    line.SetPosition(0, new Vector3(attacker.transform.position.x, attacker.transform.position.y + 1, attacker.transform.position.z + laserVariance));
-                    line.SetPosition(1, new Vector3(target.transform.position.x, target.transform.position.y + 1, target.transform.position.z));
+                    var laserVariance = attacker.isTeam ? .8f : -.8f;
+                    var laserVarianceTarget = (target is Base) ? 0 : .5f;
+                    line.SetPosition(0, new Vector3(attacker.transform.position.x -.5f, attacker.transform.position.y + 1, attacker.transform.position.z + laserVariance));
+                    line.SetPosition(1, new Vector3(target.transform.position.x - laserVarianceTarget, target.transform.position.y + 1, target.transform.position.z));
                     attacker.inAction.SetActive(true);
                     yield return new WaitForSeconds(.25f);
                     target.beingAttacked.SetActive(true);

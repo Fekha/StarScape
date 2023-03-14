@@ -26,8 +26,10 @@ public class DeckManager : MonoBehaviour
         if (cardsInDeck.Count < 19)
         {
             cardsInDeck.Add(deckManagerCard.id);
-            deckManagerCard.transform.SetParent(deckArea.gameObject.transform);
-            deckManagerCard.isInDeck = true;
+            var newCard = Instantiate(deckManagerCard, deckArea.transform);
+            newCard.isInDeck = true;
+            //deckManagerCard.transform.SetParent(deckArea.gameObject.transform);
+            //deckManagerCard.isInDeck = true;
         }
     }
     internal void RemoveCardFromDeck(DeckManagerCard deckManagerCard)
@@ -35,8 +37,9 @@ public class DeckManager : MonoBehaviour
         if (cardsInDeck.Count > 0)
         {
             cardsInDeck.Remove(deckManagerCard.id);
-            deckManagerCard.transform.SetParent(cardsArea.gameObject.transform);
-            deckManagerCard.isInDeck = false;
+            Destroy(deckManagerCard.gameObject);
+            //deckManagerCard.transform.SetParent(cardsArea.gameObject.transform);
+            //deckManagerCard.isInDeck = false;
         }
     }
 }

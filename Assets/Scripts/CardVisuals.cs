@@ -13,16 +13,18 @@ namespace Assets.Scripts
     {
         public SpriteRenderer background;
         public SpriteRenderer affinityColor;
+        public SpriteRenderer handAffinityColor;
+        public SpriteRenderer boardAffinityColor;
+        public TextMeshPro targetText;
+        public TextMeshPro hpText;
         public TextMeshPro attackText;
         public TextMeshPro costText;
         public TextMeshPro speedText;
-        public TextMeshPro hpText;
-        public TextMeshPro targetText;
         public TextMeshPro abilityText;
-        public Sprite antimatter;
-        public Sprite electric;
-        public Sprite thermal;
-        public Sprite chemical;
+        public TextMeshPro affinityText;
+        public GameObject HandBorder;
+        public GameObject BoardBorder;
+        public TextMeshPro boardAbilityText;
         private void Start()
         {
             setAffinity();
@@ -33,7 +35,8 @@ namespace Assets.Scripts
             costText.text = $"{cost}";
             speedText.text = $"{speed}";
             abilityText.text = $"{ability}";
-            targetText.text = $"{target}.";
+            boardAbilityText.text = $"{ability}";
+            targetText.text = $"{target}";
         }
 
         public virtual void setAffinity()
@@ -41,16 +44,36 @@ namespace Assets.Scripts
             switch (affinity)
             {
                 case (int)Enums.Affinities.Antimatter:
-                    affinityColor.sprite = antimatter;
+                    var lightPurple = new Color32(142, 124, 195, 255);
+                    affinityColor.color = lightPurple;
+                    handAffinityColor.color = lightPurple;
+                    boardAffinityColor.color = lightPurple;
+                    affinityText.color = lightPurple;
+                    affinityText.text = "Antimatter";
                     break;
                 case (int)Enums.Affinities.Electrical:
-                    affinityColor.sprite = electric;
+                    var lightBlue = new Color32(109, 158, 235, 255);
+                    affinityColor.color = lightBlue;
+                    handAffinityColor.color = lightBlue;
+                    boardAffinityColor.color = lightBlue;
+                    affinityText.color = lightBlue;
+                    affinityText.text = "Electrical";
                     break;
                 case (int)Enums.Affinities.Thermal:
-                    affinityColor.sprite = thermal;
+                    var lightRed= new Color32(224, 102, 102, 255);
+                    affinityColor.color = lightRed;
+                    handAffinityColor.color = lightRed;
+                    boardAffinityColor.color = lightRed;
+                    affinityText.color = lightRed;
+                    affinityText.text = "Thermal";
                     break;
                 case (int)Enums.Affinities.Chemical:
-                    affinityColor.sprite = chemical;
+                    var lightGreen = new Color32(147, 196, 125, 255);
+                    affinityColor.color = lightGreen;
+                    handAffinityColor.color = lightGreen;
+                    boardAffinityColor.color = lightGreen;
+                    affinityText.color = lightGreen;
+                    affinityText.text = "Chemical";
                     break;
             }
         }

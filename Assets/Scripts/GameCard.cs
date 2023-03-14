@@ -37,10 +37,6 @@ public class GameCard : Target
     public GameObject slow;
     public GameObject stealthed;
     public GameObject inAction;
-    public TextMeshPro abilityTextObj;
-    public GameObject cardText;
-    public TextMeshPro attackTextObj;
-
 
     public void Update()
     {
@@ -66,21 +62,26 @@ public class GameCard : Target
             }
 			else
 			{
-                if (hasSummonSickness)
+                if (hasSummonSickness && !isViewMode)
                     slow.SetActive(true);
 
-                if (hasStealth)
+                if (hasStealth && !isViewMode)
                     stealthed.SetActive(true);
 
                 disabled.SetActive(false);
-                cardText.SetActive(false);
+                HandBorder.SetActive(false);
+                BoardBorder.SetActive(true);
                 GameManager.i.availableCardSlots[handIndex] = null;
                 GameManager.i.UpdateMana(cost);
                 hasBeenPlayed = true;
                 x = currentPlacement.x;
                 y = currentPlacement.y;
                 GameManager.i.gameBoard[x,y] = this;
-                transform.position = new Vector3(currentPlacement.transform.position.x, currentPlacement.transform.position.y+.1f, currentPlacement.transform.position.z);
+                transform.position = new Vector3(currentPlacement.transform.position.x+.45f, currentPlacement.transform.position.y, currentPlacement.transform.position.z - .2f);
+                transform.localScale = new Vector3(.75f, .8f, 1);
+                var boxCollider = GetComponent<BoxCollider>();
+                boxCollider.center = new Vector3(-0.5706967f, 0.2560225f, -0.03949931f);
+                boxCollider.size = new Vector3(3.722333f, 2.491651f, 0.2789987f);
                 GameManager.i.ReorganizeHand();
             }
         }
@@ -89,18 +90,24 @@ public class GameCard : Target
     public void AIPlayCard(int cardX, int cardY)
     {
         x = cardX; y = cardY;
-        if (hasSummonSickness)
+        if (hasSummonSickness && !isViewMode)
             slow.SetActive(true);
 
-        if (hasStealth)
+        if (hasStealth && !isViewMode)
             stealthed.SetActive(true);
 
         disabled.SetActive(false);
-        cardText.SetActive(false);
+        HandBorder.SetActive(false);
+        BoardBorder.SetActive(true);
+
         hasBeenPlayed = true;
         GameManager.i.gameBoard[cardX, cardY] = this;
         var placement = GameManager.i.placements.FirstOrDefault(c => c.x == cardX && c.y == cardY);
-        transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y + .1f, placement.transform.position.z);
+        transform.position = new Vector3(placement.transform.position.x+.45f, placement.transform.position.y, placement.transform.position.z-.2f);
+        transform.localScale = new Vector3(.75f, .8f, 1);
+        var boxCollider = GetComponent<BoxCollider>();
+        boxCollider.center = new Vector3(-0.5706967f, 0.2560225f, -0.03949931f);
+        boxCollider.size = new Vector3(3.722333f, 2.491651f, 0.2789987f);
 
     }
     private void OnMouseDown()
@@ -113,7 +120,7 @@ public class GameCard : Target
         {
             if (hasBeenPlayed && viewableCard == null)
             {
-                ViewCard();
+                viewableCard = ViewCard();
             }
             else
             {
@@ -138,14 +145,14 @@ public class GameCard : Target
 
     public void OnMouseEnter()
     {
-        if (!isViewMode && !isSelected && !hasBeenPlayed && GameManager.i.selectedCard == null)
+        if (!isViewMode && !isSelected && !hasBeenPlayed && viewableCard == null && GameManager.i.selectedCard == null)
         {
             viewableCard = ViewCard();
         }
     }
     public void OnMouseExit()
     {
-        if (viewableCard != null)
+        if (!hasBeenPlayed && viewableCard != null)
         {
             Destroy(viewableCard.gameObject);
             viewableCard = null;
@@ -204,7 +211,7 @@ public class GameCard : Target
         Destroy(this.gameObject);
     }
 
-    public void UpdateHp(int attack)
+    public override void UpdateHp(int attack)
     {
         CurrentHp -= attack;
         if (CurrentHp > maxHp)
@@ -226,10 +233,12 @@ public class GameCard : Target
     }
     private GameCard ViewCard()
     {
-        GameCard infoCard = Instantiate(this, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y - 1, Camera.main.transform.position.z + 3), Camera.main.transform.rotation);
-        infoCard.cardText.SetActive(true);
+        GameCard infoCard = Instantiate(this, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y -1, Camera.main.transform.position.z + 3), Camera.main.transform.rotation);
+        infoCard.BoardBorder.SetActive(false);
+        infoCard.HandBorder.SetActive(true);
         infoCard.isViewMode = true;
-        foreach(var child in infoCard.GetComponentsInChildren<SpriteRenderer>()) {
+        foreach (var child in infoCard.GetComponentsInChildren<SpriteRenderer>())
+        {
             child.sortingLayerName = "Popup";
         }
         foreach (var child in infoCard.GetComponentsInChildren<TextMeshPro>())

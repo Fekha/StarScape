@@ -21,10 +21,7 @@ namespace Assets.Scripts
         public TextMeshProUGUI costText;
         public TextMeshProUGUI speedText;
         public TextMeshProUGUI abilityText;
-        public Sprite antimatter;
-        public Sprite electric;
-        public Sprite thermal;
-        public Sprite chemical;
+        public TextMeshProUGUI affinityText;
         private void Start()
         {
             setAffinity();
@@ -35,7 +32,7 @@ namespace Assets.Scripts
             costText.text = $"{cost}";
             speedText.text = $"{speed}";
             abilityText.text = $"{ability}";
-            targetText.text = $"{target}.";
+            targetText.text = $"{target}";
         }
 
         public virtual void setAffinity()
@@ -43,16 +40,28 @@ namespace Assets.Scripts
             switch (affinity)
             {
                 case (int)Enums.Affinities.Antimatter:
-                    affinityColor.color = new Color32(184, 61, 186, 100);
+                    var lightPurple = new Color32(142, 124, 195, 255);
+                    affinityColor.color = lightPurple;
+                    affinityText.color = lightPurple;
+                    affinityText.text = "Antimatter";
                     break;
                 case (int)Enums.Affinities.Electrical:
-                    affinityColor.color = new Color32(140, 255, 251, 100);
+                    var lightBlue = new Color32(109, 158, 235, 255);
+                    affinityColor.color = lightBlue;
+                    affinityText.color = lightBlue;
+                    affinityText.text = "Electrical";
                     break;
                 case (int)Enums.Affinities.Thermal:
-                    affinityColor.color = new Color32(236, 28, 36, 100);
+                    var lightRed= new Color32(224, 102, 102, 255);
+                    affinityColor.color = lightRed;
+                    affinityText.color = lightRed;
+                    affinityText.text = "Thermal";
                     break;
                 case (int)Enums.Affinities.Chemical:
-                    affinityColor.color = new Color32(196, 255, 14, 100);
+                    var lightGreen = new Color32(147, 196, 125, 255);
+                    affinityColor.color = lightGreen;
+                    affinityText.color = lightGreen;
+                    affinityText.text = "Chemical";
                     break;
             }
         }

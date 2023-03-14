@@ -9,18 +9,17 @@ public class GameManager : MonoBehaviour
 {
 	public static GameManager i;
     private List<CardStats> deck;
-    public List<Sprite> cardSprites;
-    public Card defaultCard;
+    public GameCard defaultCard;
 	private int maxMana = 1;
 	private int currentMana = 1;
 	public Transform[] cardSlots;
-	public Card[] availableCardSlots;
-	internal Card[,] gameBoard = new Card[3,8];
+	public GameCard[] availableCardSlots;
+	internal GameCard[,] gameBoard = new GameCard[3,8];
     public List<CardPlacement> placements = new List<CardPlacement>();
-	public Target[] enemyBases = new Target[3];
-	public Target[] teamBases = new Target[3];
+	public Base[] enemyBases = new Base[3];
+	public Base[] teamBases = new Base[3];
     private CardPlacement currentPlacement;
-    public Card selectedCard;
+    public GameCard selectedCard;
 	public GameObject popup;
 	public TextMeshProUGUI manaText;
 	public LineRenderer line;
@@ -33,7 +32,7 @@ public class GameManager : MonoBehaviour
     private void Start()
 	{
 		i = this;
-		availableCardSlots = new Card[cardSlots.Length];
+		availableCardSlots = new GameCard[cardSlots.Length];
         GetPlayerDeck();
         DrawCard();
 		DrawCard();
@@ -69,8 +68,8 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
-	public List<Card> GetActiveCards() {
-        List<Card> cardWithAction = new List<Card>();
+	public List<GameCard> GetActiveCards() {
+        List<GameCard> cardWithAction = new List<GameCard>();
         //check all played cards
         for (int i = 0; i < 3; i++)
         {
@@ -99,7 +98,7 @@ public class GameManager : MonoBehaviour
         yield return StartCoroutine(TakeCPUTurn());
 
         //attack
-        List<Card> activeCards = GetActiveCards();
+        List<GameCard> activeCards = GetActiveCards();
         foreach (var attacker in activeCards.OrderByDescending(x => x.speed))
         {
             if (!attacker.hasSummonSickness && attacker.CurrentHp > 0)
@@ -150,14 +149,14 @@ public class GameManager : MonoBehaviour
         foreach (var card in activeCards)
         {
             card.hasSummonSickness = false;
-            card.disabled.SetActive(false);
+            card.slow.SetActive(false);
         }
         endingTurn = false;
     }
 
-    private int getAttackValue(Target enemy, Card card)
+    private int getAttackValue(Target enemy, GameCard card)
     {
-        var attack = card.power;
+        var attack = card.attack;
         //check affinities
         if ((card.affinity == 1 && enemy.affinity == 2) || (card.affinity == 2 && enemy.affinity == 3) || (card.affinity == 3 && enemy.affinity == 1))
         {
@@ -219,7 +218,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(.25f);
     }
 
-    private List<Target> getTargets(Card attacker)
+    private List<Target> getTargets(GameCard attacker)
     {
         //God please forgive me for these 'for' and 'if' statements
         var targetsToReturn = new List<Target>();
@@ -254,7 +253,7 @@ public class GameManager : MonoBehaviour
                                 //check for the next one, add it, and return
                                 else if (gameBoard[attacker.x, i + (attacker.isTeam ? 1 : -1)] != null)
                                 {
-                                    targetsToReturn.Add(gameBoard[attacker.x, (attacker.isTeam ? 1 : -1)]);
+                                    targetsToReturn.Add(gameBoard[attacker.x, i + (attacker.isTeam ? 1 : -1)]);
                                     return targetsToReturn;
                                 }
                             } else if (attacker.attackLastInColumn) {
@@ -299,18 +298,12 @@ public class GameManager : MonoBehaviour
 
     private void GetPlayerDeck()
     {
-        deck = new List<CardStats>()
-        {
-            new CardStats(16,3,1,4,4,4,2,"Last",new List<int>() {2,3},"None"),
-            new CardStats(17,2,1,2,6,5,3,"Station",new List<int>() {4,5},"None"),
-            new CardStats(18,1,1,10,4,5,4,"Consecutive 1",new List<int>() {3},"Slow"),
-            new CardStats(19,0,1,1,2,8,5,"Whole Column",new List<int>() {1,2,3,4,5},"None"),
-        };
+        deck = AllCardsInGame.i.allCards;
     }
 
     internal void ReorganizeHand()
     {
-        List<Card> cardsInHand = availableCardSlots.Where(x => x != null).ToList();
+        List<GameCard> cardsInHand = availableCardSlots.Where(x => x != null).ToList();
         for (int i = 0; i < availableCardSlots.Length; i++)
         {
             availableCardSlots[i] = null;

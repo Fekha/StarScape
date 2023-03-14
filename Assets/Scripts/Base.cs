@@ -1,3 +1,4 @@
+using Assets.Scripts;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ public class Base : Target
         updateColor();
         if (CurrentHp <= 0)
         {
-            Die();
+            gameObject.SetActive(false);
         }
     }
 

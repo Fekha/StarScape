@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
-  m_Name: FredokaOne-Regular SDF
+  m_Name: FredokaOne-Regular SDF 1
   m_EditorClassIdentifier: 
-  hashCode: -1279090830
+  hashCode: -1360511005
   material: {fileID: 5648841424417533313}
-  materialHashCode: -792279406
+  materialHashCode: 155242851
   m_Version: 1.1.0
   m_SourceFontFileGUID: b73ff941e6763b04eaac440f9fc72ab0
   m_SourceFontFile_EditorRef: {fileID: 12800000, guid: b73ff941e6763b04eaac440f9fc72ab0,
@@ -2611,7 +2611,7 @@ Material:
     - _OutlineSoftness: 0
     - _OutlineUVSpeedX: 0
     - _OutlineUVSpeedY: 0
-    - _OutlineWidth: 0.31
+    - _OutlineWidth: 0
     - _PerspectiveFilter: 0.875
     - _Reflectivity: 10
     - _ScaleRatioA: 0.8333333

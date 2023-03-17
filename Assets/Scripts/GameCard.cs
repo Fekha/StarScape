@@ -72,7 +72,7 @@ public class GameCard : Target
                 HandBorder.SetActive(false);
                 BoardBorder.SetActive(true);
                 GameManager.i.availableCardSlots[handIndex] = null;
-                GameManager.i.UpdateMana(cost);
+                GameManager.i.UpdateCredits(cost);
                 hasBeenPlayed = true;
                 x = currentPlacement.x;
                 y = currentPlacement.y;
@@ -127,7 +127,7 @@ public class GameCard : Target
 
                 if (!isSelected)
                 {
-                    if (GameManager.i.CurrentMana >= cost)
+                    if (GameManager.i.CurrentCredits >= cost)
                     {
                         originPos = transform.position;
                         originRot = transform.rotation;
@@ -237,6 +237,7 @@ public class GameCard : Target
         infoCard.BoardBorder.SetActive(false);
         infoCard.HandBorder.SetActive(true);
         infoCard.isViewMode = true;
+        infoCard.stealthed.SetActive(false);
         foreach (var child in infoCard.GetComponentsInChildren<SpriteRenderer>())
         {
             child.sortingLayerName = "Popup";

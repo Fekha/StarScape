@@ -4,14 +4,15 @@ using UnityEngine;
 using TMPro;
 using System.Linq;
 using Assets.Scripts;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
 	public static GameManager i;
     private List<CardStats> deck;
     public GameCard defaultCard;
-	private int maxMana = 1;
-	private int currentMana = 1;
+	private int maxCredits = 1;
+	private int currentCredits = 1;
 	public Transform[] cardSlots;
 	public GameCard[] availableCardSlots;
 	internal GameCard[,] gameBoard = new GameCard[3,8];
@@ -20,14 +21,15 @@ public class GameManager : MonoBehaviour
 	public Base[] teamBases = new Base[3];
     private CardPlacement currentPlacement;
     public GameCard selectedCard;
-	public GameObject popup;
-	public TextMeshProUGUI manaText;
+	public GameObject gameOverPopup;
+	public Text gameOverText;
+	public TextMeshProUGUI lastTurn;
+	public TextMeshProUGUI costText;
+	public TextMeshProUGUI turnText;
 	public LineRenderer line;
     private bool endingTurn = false;
-    public Material laserBaseMaterial;
-    public Material laserCritMaterial;
-    public Material laserMissMaterial;
-    public int CurrentMana { get => currentMana; set => currentMana = value; }
+    public bool gameOver = false;
+    public int CurrentCredits { get => currentCredits; set => currentCredits = value; }
 
     private void Start()
 	{
@@ -37,7 +39,7 @@ public class GameManager : MonoBehaviour
         DrawCard();
 		DrawCard();
 		DrawCard();
-        UpdateMana();
+        UpdateCredits();
     }
 
     internal void setHighlightedPlacement(CardPlacement placement)
@@ -50,7 +52,7 @@ public class GameManager : MonoBehaviour
     }
 	private void DrawCard()
 	{
-		if (deck.Count >= 1)
+		if (deck.Count > 0)
 		{
 			CardStats randomCard = deck[Random.Range(0, deck.Count)];
 			for (int i = 0; i < availableCardSlots.Length; i++)
@@ -62,7 +64,7 @@ public class GameManager : MonoBehaviour
                     newCard.isTeam = true;
                     newCard.handIndex = i;
                     availableCardSlots[i] = newCard;
-                    //deck.Remove(randomCard);
+                    deck.Remove(randomCard);
 					return;
 				}
 			}
@@ -86,7 +88,8 @@ public class GameManager : MonoBehaviour
     }
 	public void EndTurn()
 	{
-        if (!endingTurn) {
+        if (!endingTurn)
+        {
             endingTurn = true;
             StartCoroutine(StartPhases());
         }
@@ -96,61 +99,94 @@ public class GameManager : MonoBehaviour
     {
         //Play CPU's cards 
         yield return StartCoroutine(TakeCPUTurn());
-
-        //attack
-        List<GameCard> activeCards = GetActiveCards();
-        foreach (var attacker in activeCards.OrderByDescending(x => x.speed))
+        bool attackLoop = true;
+        List<GameCard> activeCards;
+        //after tur 8 loop forever till game ends
+        while (attackLoop)
         {
-            if (!attacker.hasSummonSickness && attacker.CurrentHp > 0)
+            //attack
+            bool stillAttacking = false;
+            activeCards = GetActiveCards();
+            foreach (var attacker in activeCards.OrderByDescending(x => x.speed))
             {
-                var targets = getTargets(attacker);
-                foreach(var target in targets) {
-                    var attack = getAttackValue(target, attacker);
-                    var laserVariance = attacker.isTeam ? .8f : -.8f;
-                    var laserVarianceTarget = (target is Base) ? 0 : .5f;
-                    line.SetPosition(0, new Vector3(attacker.transform.position.x -.5f, attacker.transform.position.y + 1, attacker.transform.position.z + laserVariance));
-                    line.SetPosition(1, new Vector3(target.transform.position.x - laserVarianceTarget, target.transform.position.y + 1, target.transform.position.z));
-                    attacker.inAction.SetActive(true);
-                    yield return new WaitForSeconds(.25f);
-                    target.beingAttacked.SetActive(true);
-                    line.gameObject.SetActive(true);
-                    yield return new WaitForSeconds(.25f);
-                    line.gameObject.SetActive(false);
-                    yield return new WaitForSeconds(.25f);
-                    attacker.inAction.SetActive(false);
-                    target.beingAttacked.SetActive(false);
-                    target.UpdateHp(attack);
-                    attacker.CheckForAbilities(attack);
-                    yield return new WaitForSeconds(.25f);
-                    line.material = laserBaseMaterial;
+                if (!attacker.hasSummonSickness && attacker.CurrentHp > 0)
+                {
+                    var targets = getTargets(attacker);
+                    foreach (var target in targets)
+                    {
+                        stillAttacking = true;
+                        var attack = getAttackValue(target, attacker);
+                        var laserVariance = attacker.isTeam ? .8f : -.8f;
+                        var laserVarianceTarget = (target is Base) ? 0 : .5f;
+                        line.SetPosition(0, new Vector3(attacker.transform.position.x - .5f, attacker.transform.position.y + 1, attacker.transform.position.z + laserVariance));
+                        line.SetPosition(1, new Vector3(target.transform.position.x - laserVarianceTarget, target.transform.position.y + 1, target.transform.position.z));
+                        attacker.inAction.SetActive(true);
+                        yield return new WaitForSeconds(.1f);
+                        target.beingAttacked.SetActive(true);
+                        line.gameObject.SetActive(true);
+                        yield return new WaitForSeconds(.25f);
+                        line.gameObject.SetActive(false);
+                        yield return new WaitForSeconds(.1f);
+                        attacker.inAction.SetActive(false);
+                        target.beingAttacked.SetActive(false);
+                        target.UpdateHp(attack);
+                        attacker.CheckForAbilities(attack);
+                        yield return new WaitForSeconds(.25f);
+                    }
+                }
+            }
+
+            //check if you won
+            if (enemyBases.Count(x => x.CurrentHp > 0) < 2)
+            {
+                gameOverText.text = "Game Over \n \n You won!";
+                gameOverPopup.SetActive(true);
+                attackLoop = false;
+                gameOver = true;
+            }
+
+            //check if enemy won
+            if (teamBases.Count(x => x.CurrentHp > 0) < 2)
+            {
+                    gameOverText.text = "Game Over \n \n You Lost!";
+                gameOverPopup.SetActive(true);
+                attackLoop = false;
+                gameOver = true;
+            }
+
+           
+            if (maxCredits < 8)
+            {
+                attackLoop = false;
+            }
+            else
+            {
+                lastTurn.text = "Automating!";
+                //If no targets are found, exit loop and end in tie
+                if (stillAttacking == false)
+                {
+                    gameOverText.text = "Game Over \n \n Tie!";
+                    gameOverPopup.SetActive(true);
+                    attackLoop = false;
+                    gameOver = true;
                 }
             }
         }
-
-        //check if you won
-        if (enemyBases.Count(x => x.CurrentHp > 0) < 2)
+        if (!gameOver)
         {
-            popup.SetActive(true);
-        }
-
-        //check if enemy won
-        if (teamBases.Count(x => x.CurrentHp > 0) < 2)
-        {
-            popup.SetActive(true);
-        }
-
-        //reset for next turn
-        DrawCard();
-        if (maxMana < 8)
-            maxMana++;
-        currentMana = maxMana;
-        UpdateMana();
-        //re-get to avoid referencing dead enemies
-        activeCards = GetActiveCards();
-        foreach (var card in activeCards)
-        {
-            card.hasSummonSickness = false;
-            card.slow.SetActive(false);
+            //reset for next turn
+            DrawCard();
+            if (maxCredits < 8)
+                maxCredits++;
+            currentCredits = maxCredits;
+            UpdateCredits();
+            //re-get to avoid referencing dead enemies
+            activeCards = GetActiveCards();
+            foreach (var card in activeCards)
+            {
+                card.hasSummonSickness = false;
+                card.slow.SetActive(false);
+            }
         }
         endingTurn = false;
     }
@@ -158,6 +194,7 @@ public class GameManager : MonoBehaviour
     private int getAttackValue(Target enemy, GameCard card)
     {
         var attack = card.attack;
+        line.material.color = Color.magenta;
         //check affinities
         if ((card.affinity == 1 && enemy.affinity == 2) || (card.affinity == 2 && enemy.affinity == 3) || (card.affinity == 3 && enemy.affinity == 1))
         {
@@ -171,12 +208,12 @@ public class GameManager : MonoBehaviour
         var rand = Random.Range(0, 20);
         if (rand == 0)
         {
-            line.material = laserMissMaterial;
+            line.material.color = Color.red;
             attack = (int)(attack * .5);
         }
         else if (rand == 18 || rand == 19)
         {
-            line.material = laserCritMaterial;
+            line.material.color = Color.green;
             attack = (int)(attack * 1.25);
         }
         return attack;
@@ -184,11 +221,11 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator TakeCPUTurn()
     {
-        var aiMana = maxMana;
+        var aiMana = maxCredits;
         var spawnCount = 0;
         while (aiMana > 0)
         {
-            var randomCard = deck[Random.Range(0, deck.Where(x=>x.cost <= aiMana).Count())];
+            var randomCard = AllCardsInGame.i.allCards[Random.Range(0, AllCardsInGame.i.allCards.Where(x=>x.cost <= aiMana).Count())];
            
             var openLanes = teamBases.Where(x => x.CurrentHp > 0).ToList();
             var cardX = openLanes[Random.Range(0, openLanes.Count())].x;
@@ -280,13 +317,18 @@ public class GameManager : MonoBehaviour
         return targetsToReturn;
     }
 
-    public void UpdateMana(int cost = 0)
+    public void UpdateCredits(int cost = 0)
 	{
-        currentMana -= cost;
-        manaText.text = $"{currentMana}{(currentMana==0?"":"M")} Credits";
+        currentCredits -= cost;
+        costText.text = $"{currentCredits}{(currentCredits==0?"":"M")} Credits";
+        turnText.text = $"Turn {maxCredits}/8";
+        if (maxCredits == 8)
+        {
+            lastTurn.gameObject.SetActive(true);
+        }
         foreach (var cardInHand in availableCardSlots.Where(x => x != null))
         {
-			if (cardInHand.cost > currentMana)
+			if (cardInHand.cost > currentCredits)
 			{
 				cardInHand.disabled.SetActive(true);
 			}
@@ -299,7 +341,18 @@ public class GameManager : MonoBehaviour
 
     private void GetPlayerDeck()
     {
-        deck = AllCardsInGame.i.allCards;
+        deck = new List<CardStats>();
+        if (PlayerDeck.i != null)
+        {
+            foreach (var cardId in PlayerDeck.i.cardsInDeck)
+            {
+                deck.Add(AllCardsInGame.i.allCards.FirstOrDefault(x => x.id == cardId));
+            }
+        }
+        else
+        {
+            deck = AllCardsInGame.i.allCards;
+        }
     }
 
     internal void ReorganizeHand()

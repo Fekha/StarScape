@@ -9,25 +9,36 @@ using UnityEngine;
 public class GameCard : Target
 {
     //Card Attack Patterns
-    public bool attackConsecutive1 = false;
-    public bool attackWholeColumn = false;
-    public bool attackSkipFirst = false;
-    public bool attackLastInColumn = false;
-    public bool attackOnlyStation = false;
+    internal bool targetConsecutive = false;
+    internal bool targetColumn = false;
+    internal bool targetSkipFirst = false;
+    internal bool targetLastInColumn = false;
+    internal bool targetStation = false;
+    internal bool targetLeft;
+    internal bool targetRight;
+    internal bool targetCenter;
+    internal bool targetRow;
 
     //Card Abilities
-    public bool hasSummonSickness = false;
-    public bool hasStealth = false;
-    public int burnout = 0;
-    public double drain = 0;
-    public int scavenger = 0;
+    internal bool hasSlowStart = false;
+    internal bool hasStealth = false;
+    internal bool onAttackGain2Speed = false;
+    internal bool onAttackHeal2 = false;
+    internal bool reflect20percent = false;
+    internal bool doubleCrit = false;
+    internal bool onAttackLowerEnemySpeed2 = false;
+    internal bool onAttackGain2Attack = false;
+    internal bool onArrivalDrawCard = false;
+    internal bool doubleMisfire = false;
+    internal bool onAttackDeal2DamageSelf = false;
 
     //Game variables
     public bool isSelected;
     public bool isTeam;
     public bool isViewMode;
     public int handIndex;
-    public bool hasBeenPlayed;
+    public bool hasBeenPlayed = false;
+    public bool hasCheckedForArrivalAbilities = false;
     public Vector3 originPos;
     public Quaternion originRot;
 
@@ -37,6 +48,7 @@ public class GameCard : Target
     public GameObject slow;
     public GameObject stealthed;
     public GameObject inAction;
+  
 
     public void Update()
     {
@@ -62,7 +74,7 @@ public class GameCard : Target
             }
 			else
 			{
-                if (hasSummonSickness && !isViewMode)
+                if (hasSlowStart && !isViewMode)
                     slow.SetActive(true);
 
                 if (hasStealth && !isViewMode)
@@ -70,14 +82,15 @@ public class GameCard : Target
 
                 disabled.SetActive(false);
                 HandBorder.SetActive(false);
-                BoardBorder.SetActive(true);
+                CostIcon.SetActive(false);
+
                 GameManager.i.availableCardSlots[handIndex] = null;
                 GameManager.i.UpdateCredits(cost);
                 hasBeenPlayed = true;
                 x = currentPlacement.x;
                 y = currentPlacement.y;
                 GameManager.i.gameBoard[x,y] = this;
-                transform.position = new Vector3(currentPlacement.transform.position.x+.45f, currentPlacement.transform.position.y, currentPlacement.transform.position.z - .2f);
+                transform.position = new Vector3(currentPlacement.transform.position.x, currentPlacement.transform.position.y, currentPlacement.transform.position.z - .2f);
                 transform.localScale = new Vector3(.75f, .8f, 1);
                 var boxCollider = GetComponent<BoxCollider>();
                 boxCollider.center = new Vector3(-0.5706967f, 0.2560225f, -0.03949931f);
@@ -90,7 +103,7 @@ public class GameCard : Target
     public void AIPlayCard(int cardX, int cardY)
     {
         x = cardX; y = cardY;
-        if (hasSummonSickness && !isViewMode)
+        if (hasSlowStart && !isViewMode)
             slow.SetActive(true);
 
         if (hasStealth && !isViewMode)
@@ -98,12 +111,12 @@ public class GameCard : Target
 
         disabled.SetActive(false);
         HandBorder.SetActive(false);
-        BoardBorder.SetActive(true);
+        CostIcon.SetActive(false);
 
         hasBeenPlayed = true;
         GameManager.i.gameBoard[cardX, cardY] = this;
         var placement = GameManager.i.placements.FirstOrDefault(c => c.x == cardX && c.y == cardY);
-        transform.position = new Vector3(placement.transform.position.x+.45f, placement.transform.position.y, placement.transform.position.z-.2f);
+        transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y, placement.transform.position.z-.2f);
         transform.localScale = new Vector3(.75f, .8f, 1);
         var boxCollider = GetComponent<BoxCollider>();
         boxCollider.center = new Vector3(-0.5706967f, 0.2560225f, -0.03949931f);
@@ -166,42 +179,42 @@ public class GameCard : Target
     internal override void UpdateStats(CardStats stat)
     {
         base.UpdateStats(stat);
-        setAbilities(stat.abilities);
+        setAbility(stat.id);
         setAttackTarget(stat.targetId);
     }
 
     private void setAttackTarget(int attackPattern)
     {
         switch (attackPattern) {
-            case 1: attackSkipFirst = true; break;
-            case 2: attackLastInColumn = true; break;
-            case 3: attackOnlyStation = true; break;
-            case 4: attackConsecutive1 = true; break;
-            case 5: attackWholeColumn = true; break;
+            case 1: targetSkipFirst = true; break;
+            case 2: targetLastInColumn = true; break;
+            case 3: targetStation = true; break;
+            case 4: targetConsecutive = true; break;
+            case 5: targetColumn = true; break;
+            case 6: targetLeft = true; break;
+            case 7: targetRight = true; break;
+            case 8: targetCenter = true; break;
+            case 9: targetRow = true; break;
         }
     }
 
-    private void setAbilities(List<int> abilities)
+    private void setAbility(int ability)
     {
-        if (abilities.Contains(1))
+        switch (ability)
         {
-            hasSummonSickness = true;
-        }
-        if (abilities.Contains(2))
-        {
-            burnout = 2;
-        }
-        if (abilities.Contains(3))
-        {
-            hasStealth = true;
-        }
-        if (abilities.Contains(4))
-        {
-            drain = -.1;
-        }
-        if (abilities.Contains(5))
-        {
-            scavenger = 2;
+            case 1: onAttackGain2Speed = true; break;
+            case 2: hasSlowStart = true; break;
+            case 3: hasStealth = true; break;
+            case 4: onAttackDeal2DamageSelf = true; break;
+            case 5: doubleMisfire = true; break; 
+            case 6: onArrivalDrawCard = true; break;
+            case 8: onAttackGain2Attack = true; break;
+            case 9: onAttackLowerEnemySpeed2 = true; break;
+            case 11: hasSlowStart = true; break;
+            case 12: doubleCrit = true; break;
+            case 13: reflect20percent = true; break;
+            case 15: onAttackHeal2 = true; break;
+            default: break;
         }
     }
 
@@ -224,20 +237,57 @@ public class GameCard : Target
             Die();
         }
     }
-    public void CheckForAbilities(int attack)
+    public void CheckForOnAttackAbilities(int attack, GameCard target = null)
     {
-        UpdateHp(burnout);
-        UpdateHp((int)(attack * drain));
-        this.attack += scavenger;
-        attackText.text = $"{this.attack}";
+        if (onAttackGain2Speed)
+        {
+            speed += 2;
+            attackText.text = $"{this.attack}";
+        }
+        if (onAttackDeal2DamageSelf)
+        {
+            UpdateHp(2);
+
+        }
+        if (onAttackGain2Attack)
+        {
+            this.attack += 2;
+            attackText.text = $"{this.attack}";
+        }
+        if (onAttackHeal2)
+        {
+            UpdateHp(-2);
+        }
+        if (target != null)
+        {
+            if (onAttackLowerEnemySpeed2)
+            {
+                target.speed -= 2;
+            }
+            if (target.reflect20percent)
+            {
+                UpdateHp((int)(attack * .2));
+            }
+        }
+    }
+    internal void CheckForOnArrivalAbilties()
+    {
+        hasCheckedForArrivalAbilities = true;
+        if (onArrivalDrawCard)
+        {
+            GameManager.i.DrawCard();
+        }
     }
     private GameCard ViewCard()
     {
         GameCard infoCard = Instantiate(this, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y -1, Camera.main.transform.position.z + 3), Camera.main.transform.rotation);
-        infoCard.BoardBorder.SetActive(false);
+        infoCard.CostIcon.SetActive(true);
         infoCard.HandBorder.SetActive(true);
         infoCard.isViewMode = true;
         infoCard.stealthed.SetActive(false);
+        infoCard.slow.SetActive(false);
+        infoCard.inAction.SetActive(false);
+        infoCard.beingAttacked.SetActive(false);
         foreach (var child in infoCard.GetComponentsInChildren<SpriteRenderer>())
         {
             child.sortingLayerName = "Popup";
@@ -249,4 +299,6 @@ public class GameCard : Target
         infoCard.transform.localScale += new Vector3(3, 3, 3);
         return infoCard;
     }
+
+    
 }

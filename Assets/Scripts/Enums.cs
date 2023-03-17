@@ -24,7 +24,7 @@ namespace Assets.Scripts
         public enum Ability
         {
             None,
-            Slow
+            Slow,
         }
     }
 }

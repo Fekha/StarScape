@@ -22,6 +22,7 @@ namespace Assets.Scripts
         public TextMeshProUGUI speedText;
         public TextMeshProUGUI abilityText;
         public TextMeshProUGUI affinityText;
+        public TextMeshProUGUI nameText;
         private void Start()
         {
             setAffinity();
@@ -33,6 +34,7 @@ namespace Assets.Scripts
             speedText.text = $"{speed}";
             abilityText.text = $"{ability}";
             targetText.text = $"{target}";
+            nameText.text = $"{name}";
         }
 
         public virtual void setAffinity()

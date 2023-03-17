@@ -8,7 +8,7 @@ namespace Assets.Scripts
 {
     internal class FakeCard : CardStats
     {
-        public FakeCard(int id, int affinity, int cost, int maxHp, int attack, int speed, int target, string targetText, List<int> abilities, string abilityText)
+        public FakeCard(int id, int affinity, int cost, int maxHp, int attack, int speed, int target, string targetText, string abilityText, string nameText)
         {
             this.id = id;
             this.cost = cost;
@@ -17,7 +17,7 @@ namespace Assets.Scripts
             this.speed = speed;
             this.targetId = target;
             this.affinity = affinity;
-            this.abilities = abilities;
+            this.name = nameText;
             this.ability = abilityText;
             this.target = targetText;
         }

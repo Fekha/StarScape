@@ -18,9 +18,9 @@ namespace Assets.Scripts
         public int speed;
         public int targetId;
         public string ability;
+        public string name;
         public string target;
         public int affinity = 0;
-        public List<int> abilities;
         public int CurrentHp { get => currentHp; set => currentHp = value; }
 
 
@@ -34,6 +34,7 @@ namespace Assets.Scripts
             affinity = stat.affinity;
             ability = stat.ability;
             target = stat.target;
+            name = stat.name;
         }
     }
 }

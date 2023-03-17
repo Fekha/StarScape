@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour
     private void Start()
 	{
 		i = this;
-		availableCardSlots = new GameCard[cardSlots.Length];
+        availableCardSlots = new GameCard[cardSlots.Length];
         GetPlayerDeck();
         DrawCard();
 		DrawCard();
@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
 	{
 		return currentPlacement;
     }
-	private void DrawCard()
+	internal void DrawCard()
 	{
 		if (deck.Count > 0)
 		{
@@ -100,7 +100,12 @@ public class GameManager : MonoBehaviour
         //Play CPU's cards 
         yield return StartCoroutine(TakeCPUTurn());
         bool attackLoop = true;
-        List<GameCard> activeCards;
+        List<GameCard> activeCards = GetActiveCards();
+        //check for on arrival abilities
+        foreach (var activeCard in activeCards.Where(x=>!x.hasCheckedForArrivalAbilities))
+        {
+            activeCard.CheckForOnArrivalAbilties();
+        }
         //after tur 8 loop forever till game ends
         while (attackLoop)
         {
@@ -109,7 +114,7 @@ public class GameManager : MonoBehaviour
             activeCards = GetActiveCards();
             foreach (var attacker in activeCards.OrderByDescending(x => x.speed))
             {
-                if (!attacker.hasSummonSickness && attacker.CurrentHp > 0)
+                if (!attacker.hasSlowStart && attacker.CurrentHp > 0)
                 {
                     var targets = getTargets(attacker);
                     foreach (var target in targets)
@@ -117,9 +122,8 @@ public class GameManager : MonoBehaviour
                         stillAttacking = true;
                         var attack = getAttackValue(target, attacker);
                         var laserVariance = attacker.isTeam ? .8f : -.8f;
-                        var laserVarianceTarget = (target is Base) ? 0 : .5f;
-                        line.SetPosition(0, new Vector3(attacker.transform.position.x - .5f, attacker.transform.position.y + 1, attacker.transform.position.z + laserVariance));
-                        line.SetPosition(1, new Vector3(target.transform.position.x - laserVarianceTarget, target.transform.position.y + 1, target.transform.position.z));
+                        line.SetPosition(0, new Vector3(attacker.transform.position.x, attacker.transform.position.y + 1, attacker.transform.position.z + laserVariance));
+                        line.SetPosition(1, new Vector3(target.transform.position.x, target.transform.position.y + 1, target.transform.position.z));
                         attacker.inAction.SetActive(true);
                         yield return new WaitForSeconds(.1f);
                         target.beingAttacked.SetActive(true);
@@ -130,7 +134,7 @@ public class GameManager : MonoBehaviour
                         attacker.inAction.SetActive(false);
                         target.beingAttacked.SetActive(false);
                         target.UpdateHp(attack);
-                        attacker.CheckForAbilities(attack);
+                        attacker.CheckForOnAttackAbilities(attack, target is GameCard ? target as GameCard: null);
                         yield return new WaitForSeconds(.25f);
                     }
                 }
@@ -184,7 +188,7 @@ public class GameManager : MonoBehaviour
             activeCards = GetActiveCards();
             foreach (var card in activeCards)
             {
-                card.hasSummonSickness = false;
+                card.hasSlowStart = false;
                 card.slow.SetActive(false);
             }
         }
@@ -206,12 +210,12 @@ public class GameManager : MonoBehaviour
         }
         //check for crits and misfires
         var rand = Random.Range(0, 20);
-        if (rand == 0)
+        if (rand == 0 || (card.doubleMisfire && rand == 1))
         {
             line.material.color = Color.red;
             attack = (int)(attack * .5);
         }
-        else if (rand == 18 || rand == 19)
+        else if (rand == 18 || rand == 19 || (card.doubleCrit && (rand == 17 || rand == 16)))
         {
             line.material.color = Color.green;
             attack = (int)(attack * 1.25);
@@ -261,26 +265,51 @@ public class GameManager : MonoBehaviour
         //God please forgive me for these 'for' and 'if' statements
         var targetsToReturn = new List<Target>();
         var hasSkippedAttack = false;
-        if (!attacker.attackOnlyStation)
+        var rowToTarget = attacker.x;
+        if (attacker.targetLeft) {
+            rowToTarget = 0;
+        } 
+        else if (attacker.targetRight) {
+            rowToTarget = 2;
+        }
+        else if (attacker.targetCenter) {
+            rowToTarget = 1;
+        }
+        if (!attacker.targetStation)
         {
             for (int i = attacker.isTeam ? 4 :3; attacker.isTeam ? i <= 7 : i >= 0; i = i + (attacker.isTeam ? 1:-1))
             {
-                if (gameBoard[attacker.x, i] != null)
+                
+                if (gameBoard[rowToTarget, i] != null)
                 {
-                    if (attacker.attackWholeColumn)
+                    if (attacker.targetColumn)
                     {
-                        targetsToReturn.Add(gameBoard[attacker.x, i]);
+                        targetsToReturn.Add(gameBoard[rowToTarget, i]);
                     }
-                    else if (!gameBoard[attacker.x, i].hasStealth)
+                    else if (!gameBoard[rowToTarget, i].hasStealth)
                     {
-                        if (attacker.attackSkipFirst && !hasSkippedAttack)
+                        if (attacker.targetSkipFirst && !hasSkippedAttack)
                         {
                             hasSkippedAttack = true;
                         }
                         else
                         {
-                            targetsToReturn.Add(gameBoard[attacker.x, i]);
-                            if (attacker.attackConsecutive1)
+                            if (attacker.targetRow)
+                            {
+                                for (int column = 0; column < 3; column++)
+                                {
+                                    if (gameBoard[column, i] != null)
+                                    {
+                                        targetsToReturn.Add(gameBoard[column, i]);
+                                    }
+                                }
+                                return targetsToReturn;
+                            } else {
+                                targetsToReturn.Add(gameBoard[rowToTarget, i]);
+                            }
+
+
+                            if (attacker.targetConsecutive)
                             {
                                 //check if at end of loop
                                 if ((attacker.isTeam && i == 7) || (!attacker.isTeam && i == 0))
@@ -289,12 +318,12 @@ public class GameManager : MonoBehaviour
                                     break;
                                 }
                                 //check for the next one, add it, and return
-                                else if (gameBoard[attacker.x, i + (attacker.isTeam ? 1 : -1)] != null)
+                                else if (gameBoard[rowToTarget, i + (attacker.isTeam ? 1 : -1)] != null)
                                 {
-                                    targetsToReturn.Add(gameBoard[attacker.x, i + (attacker.isTeam ? 1 : -1)]);
+                                    targetsToReturn.Add(gameBoard[rowToTarget, i + (attacker.isTeam ? 1 : -1)]);
                                     return targetsToReturn;
                                 }
-                            } else if (attacker.attackLastInColumn) {
+                            } else if (attacker.targetLastInColumn) {
                                 //collecting all targets and determining last at end 
                             }
                             else
@@ -306,13 +335,23 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        if (attacker.attackLastInColumn && targetsToReturn.Count > 0)
+        if (attacker.targetLastInColumn && targetsToReturn.Count > 0)
         {
             return new List<Target>() { targetsToReturn.LastOrDefault() };
         }
-        if ((attacker.isTeam ? enemyBases[attacker.x].CurrentHp: teamBases[attacker.x].CurrentHp) > 0)
+        if (attacker.targetRow)
         {
-            targetsToReturn.Add(attacker.isTeam ? enemyBases[attacker.x] : teamBases[attacker.x]);
+            for (int column = 0; column < 3; column++)
+            {
+                if ((attacker.isTeam ? enemyBases[column].CurrentHp : teamBases[column].CurrentHp) > 0)
+                {
+                    targetsToReturn.Add(attacker.isTeam ? enemyBases[column] : teamBases[column]);
+                }
+            }
+        }
+        else if ((attacker.isTeam ? enemyBases[rowToTarget].CurrentHp: teamBases[rowToTarget].CurrentHp) > 0)
+        {
+            targetsToReturn.Add(attacker.isTeam ? enemyBases[rowToTarget] : teamBases[rowToTarget]);
         }
         return targetsToReturn;
     }

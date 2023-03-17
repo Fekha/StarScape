@@ -17,13 +17,14 @@ namespace Assets.Scripts
         public SpriteRenderer boardAffinityColor;
         public TextMeshPro targetText;
         public TextMeshPro hpText;
+        public TextMeshPro nameText;
         public TextMeshPro attackText;
         public TextMeshPro costText;
         public TextMeshPro speedText;
         public TextMeshPro abilityText;
         public TextMeshPro affinityText;
         public GameObject HandBorder;
-        public GameObject BoardBorder;
+        public GameObject CostIcon;
         public TextMeshPro boardAbilityText;
         private void Start()
         {
@@ -37,6 +38,7 @@ namespace Assets.Scripts
             abilityText.text = $"{ability}";
             boardAbilityText.text = $"{ability}";
             targetText.text = $"{target}";
+            nameText.text = $"{name}";
         }
 
         public virtual void setAffinity()

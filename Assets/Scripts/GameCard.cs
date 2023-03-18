@@ -20,15 +20,17 @@ public class GameCard : Target
     //Card Abilities
     internal bool hasSlowStart = false;
     internal bool hasStealth = false;
-    internal bool onAttackGain2Speed = false;
+    internal bool onAttackGain1Attack = false;
     internal bool onAttackHeal2 = false;
     internal bool reflect20percent = false;
     internal bool doubleCrit = false;
-    internal bool onAttackLowerEnemySpeed2 = false;
     internal bool onAttackGain2Attack = false;
     internal bool onArrivalDrawCard = false;
     internal bool doubleMisfire = false;
-    internal bool onAttackDeal2DamageSelf = false;
+    internal bool onAttackDeal1DamageToSelf = false;
+    internal bool onAttackDeal2DamageToSelf = false;
+    internal bool onAttackDeal4DamageToSelf = false;
+    internal bool onArrivalHealAllies3 = false;
 
     //Game variables
     public bool isSelected;
@@ -45,7 +47,9 @@ public class GameCard : Target
     public GameObject slow;
     public GameObject stealthed;
     public GameObject inAction;
-  
+    private bool onArrivalDamageEnemies2;
+
+    public bool OnAttackLose1Attak { get; private set; }
 
     public void Update()
     {
@@ -188,18 +192,27 @@ public class GameCard : Target
     {
         switch (ability)
         {
-            case 1: onAttackGain2Speed = true; break;
+            case 0: break;
+            case 1: onAttackGain1Attack = true; break;
             case 2: hasSlowStart = true; break;
-            case 3: hasStealth = true; break;
-            case 4: onAttackDeal2DamageSelf = true; break;
+            case 3: onAttackDeal1DamageToSelf = true; break;
+            case 4: hasStealth = true; break;
             case 5: doubleMisfire = true; break; 
-            case 6: onArrivalDrawCard = true; break;
-            case 8: onAttackGain2Attack = true; break;
-            case 9: onAttackLowerEnemySpeed2 = true; break;
-            case 11: hasSlowStart = true; break;
-            case 12: doubleCrit = true; break;
-            case 13: reflect20percent = true; break;
-            case 15: onAttackHeal2 = true; break;
+            case 6: onArrivalHealAllies3 = true; break;
+            case 7: onAttackDeal2DamageToSelf = true; break;
+            case 8: onArrivalDamageEnemies2 = true; break;
+            case 9: onArrivalDrawCard = true; break;
+            case 10: break;
+            case 11: onAttackGain2Attack = true; break;
+            case 12: OnAttackLose1Attak = true; break;
+            case 13: break;
+            case 14: hasSlowStart = true; break;
+            case 15: doubleCrit = true; break;
+            case 16: reflect20percent = true; break;
+            case 17: break;
+            case 18: onAttackHeal2 = true; break;
+            case 19: break;
+            case 20: onAttackDeal4DamageToSelf = true; break;
             default: break;
         }
     }
@@ -225,16 +238,29 @@ public class GameCard : Target
     }
     public void CheckForOnAttackAbilities(int attack, GameCard target = null)
     {
-        //if (onAttackGain2Speed)
-        //{
-        //    speed += 2;
-        //    attackText.text = $"{this.attack}";
-        //}
-        if (onAttackDeal2DamageSelf)
+        if (onAttackDeal1DamageToSelf)
+        {
+            UpdateHp(1);
+        } 
+        if (onAttackDeal2DamageToSelf)
         {
             UpdateHp(2);
-
+        } 
+        if (onAttackDeal4DamageToSelf)
+        {
+            UpdateHp(4);
         }
+        if (OnAttackLose1Attak)
+        {
+            if(this.attack > 1)
+                this.attack -= 1;
+            attackText.text = $"{this.attack}";
+        }  
+        if (onAttackGain1Attack)
+        {
+            this.attack += 1;
+            attackText.text = $"{this.attack}";
+        } 
         if (onAttackGain2Attack)
         {
             this.attack += 2;
@@ -246,10 +272,6 @@ public class GameCard : Target
         }
         if (target != null)
         {
-            //if (onAttackLowerEnemySpeed2)
-            //{
-            //    target.speed -= 2;
-            //}
             if (target.reflect20percent)
             {
                 UpdateHp((int)(attack * .2));
@@ -258,9 +280,25 @@ public class GameCard : Target
     }
     internal void CheckForOnArrivalAbilties()
     {
-        if (onArrivalDrawCard)
+        if (onArrivalDrawCard && isTeam)
         {
             GameManager.i.DrawCard();
+        }
+        if (onArrivalHealAllies3)
+        {
+            var teammates = GameManager.i.GetActiveCards().Where(x=>x.isTeam == isTeam);
+            foreach (var mate in teammates)
+            {
+                mate.UpdateHp(-3);
+            }
+        }
+        if (onArrivalDamageEnemies2)
+        {
+            var enemies = GameManager.i.GetActiveCards().Where(x => x.isTeam != isTeam);
+            foreach (var enemy in enemies)
+            {
+                enemy.UpdateHp(2);
+            }
         }
     }
     private GameCard ViewCard()

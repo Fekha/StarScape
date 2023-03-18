@@ -29,6 +29,7 @@ namespace Assets.Scripts
             id = stat.id;
             cost = stat.cost;
             maxHp = stat.maxHp;
+            currentHp = stat.currentHp;
             attack = stat.attack;
             speed = stat.speed;
             affinity = stat.affinity;

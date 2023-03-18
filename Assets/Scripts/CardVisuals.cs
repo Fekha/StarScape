@@ -32,7 +32,11 @@ namespace Assets.Scripts
             setAffinity();
             background.sprite = AllCardsInGame.i.cardSprites[id];
             CurrentHp = maxHp;
-            hpText.text = $"{CurrentHp}";
+
+            //Stops viewable cards from showing maxHp as current
+            if (hpText.text == "")
+                hpText.text = $"{CurrentHp}";
+
             attackText.text = $"{attack}";
             costText.text = $"{cost}";
             abilityText.text = $"{ability}";

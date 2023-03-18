@@ -1,7 +1,5 @@
 using Assets.Scripts;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -38,7 +36,6 @@ public class GameCard : Target
     public bool isViewMode;
     public int handIndex;
     public bool hasBeenPlayed = false;
-    public bool hasCheckedForArrivalAbilities = false;
     public Vector3 originPos;
     public Quaternion originRot;
 
@@ -74,35 +71,16 @@ public class GameCard : Target
             }
 			else
 			{
-                if (hasSlowStart && !isViewMode)
-                    slow.SetActive(true);
-
-                if (hasStealth && !isViewMode)
-                    stealthed.SetActive(true);
-
-                disabled.SetActive(false);
-                HandBorder.SetActive(false);
-                CostIcon.SetActive(false);
-
+                PlayCard(currentPlacement);
                 GameManager.i.availableCardSlots[handIndex] = null;
                 GameManager.i.UpdateCredits(cost);
-                hasBeenPlayed = true;
-                x = currentPlacement.x;
-                y = currentPlacement.y;
-                GameManager.i.gameBoard[x,y] = this;
-                transform.position = new Vector3(currentPlacement.transform.position.x, currentPlacement.transform.position.y, currentPlacement.transform.position.z - .2f);
-                transform.localScale = new Vector3(.75f, .8f, 1);
-                var boxCollider = GetComponent<BoxCollider>();
-                boxCollider.center = new Vector3(-0.5706967f, 0.2560225f, -0.03949931f);
-                boxCollider.size = new Vector3(3.722333f, 2.491651f, 0.2789987f);
                 GameManager.i.ReorganizeHand();
             }
         }
     }
-    //combine logic later with onmouseup
-    public void AIPlayCard(int cardX, int cardY)
+
+    private void PlayCard(CardPlacement placement)
     {
-        x = cardX; y = cardY;
         if (hasSlowStart && !isViewMode)
             slow.SetActive(true);
 
@@ -111,17 +89,25 @@ public class GameCard : Target
 
         disabled.SetActive(false);
         HandBorder.SetActive(false);
-        CostIcon.SetActive(false);
 
+        GameManager.i.CardsPlayedThisTurn.Add(this);
         hasBeenPlayed = true;
-        GameManager.i.gameBoard[cardX, cardY] = this;
-        var placement = GameManager.i.placements.FirstOrDefault(c => c.x == cardX && c.y == cardY);
-        transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y, placement.transform.position.z-.2f);
+        x = placement.x;
+        y = placement.y;
+        GameManager.i.gameBoard[x, y] = this;
+        transform.position = new Vector3(placement.transform.position.x, placement.transform.position.y, placement.transform.position.z - .2f);
         transform.localScale = new Vector3(.75f, .8f, 1);
         var boxCollider = GetComponent<BoxCollider>();
-        boxCollider.center = new Vector3(-0.5706967f, 0.2560225f, -0.03949931f);
-        boxCollider.size = new Vector3(3.722333f, 2.491651f, 0.2789987f);
+        boxCollider.center = new Vector3(0.002483845f, 0.2560225f, -0.03949931f);
+        boxCollider.size = new Vector3(2.575973f, 2.491651f, 0.2789987f);
+    }
 
+    //combine logic later with onmouseup
+    public void AIPlayCard(int cardX, int cardY)
+    {
+        x = cardX; y = cardY;
+        var placement = GameManager.i.placements.FirstOrDefault(c => c.x == cardX && c.y == cardY);
+        PlayCard(placement);
     }
     private void OnMouseDown()
     {
@@ -239,11 +225,11 @@ public class GameCard : Target
     }
     public void CheckForOnAttackAbilities(int attack, GameCard target = null)
     {
-        if (onAttackGain2Speed)
-        {
-            speed += 2;
-            attackText.text = $"{this.attack}";
-        }
+        //if (onAttackGain2Speed)
+        //{
+        //    speed += 2;
+        //    attackText.text = $"{this.attack}";
+        //}
         if (onAttackDeal2DamageSelf)
         {
             UpdateHp(2);
@@ -260,10 +246,10 @@ public class GameCard : Target
         }
         if (target != null)
         {
-            if (onAttackLowerEnemySpeed2)
-            {
-                target.speed -= 2;
-            }
+            //if (onAttackLowerEnemySpeed2)
+            //{
+            //    target.speed -= 2;
+            //}
             if (target.reflect20percent)
             {
                 UpdateHp((int)(attack * .2));
@@ -272,7 +258,6 @@ public class GameCard : Target
     }
     internal void CheckForOnArrivalAbilties()
     {
-        hasCheckedForArrivalAbilities = true;
         if (onArrivalDrawCard)
         {
             GameManager.i.DrawCard();
@@ -281,7 +266,8 @@ public class GameCard : Target
     private GameCard ViewCard()
     {
         GameCard infoCard = Instantiate(this, new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y -1, Camera.main.transform.position.z + 3), Camera.main.transform.rotation);
-        infoCard.CostIcon.SetActive(true);
+        //infoCard.CostIcon.SetActive(true);
+        //infoCard.SpeedIcon.SetActive(false);
         infoCard.HandBorder.SetActive(true);
         infoCard.isViewMode = true;
         infoCard.stealthed.SetActive(false);
@@ -300,5 +286,11 @@ public class GameCard : Target
         return infoCard;
     }
 
-    
+    internal void SetSpeed(int newSpeed)
+    {
+        CostIcon.SetActive(false);
+        SpeedIcon.SetActive(true);
+        speed = newSpeed;
+        speedText.text = $"{newSpeed}";
+    }
 }

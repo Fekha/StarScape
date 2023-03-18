@@ -25,6 +25,7 @@ namespace Assets.Scripts
         public TextMeshPro affinityText;
         public GameObject HandBorder;
         public GameObject CostIcon;
+        public GameObject SpeedIcon;
         public TextMeshPro boardAbilityText;
         private void Start()
         {
@@ -34,7 +35,6 @@ namespace Assets.Scripts
             hpText.text = $"{CurrentHp}";
             attackText.text = $"{attack}";
             costText.text = $"{cost}";
-            speedText.text = $"{speed}";
             abilityText.text = $"{ability}";
             boardAbilityText.text = $"{ability}";
             targetText.text = $"{target}";

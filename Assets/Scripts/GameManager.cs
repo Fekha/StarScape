@@ -5,6 +5,7 @@ using TMPro;
 using System.Linq;
 using Assets.Scripts;
 using UnityEngine.UI;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -29,11 +30,15 @@ public class GameManager : MonoBehaviour
 	public LineRenderer line;
     private bool endingTurn = false;
     public bool gameOver = false;
+    public List<GameCard> CardsPlayedThisTurn = new List<GameCard>();
+    public int playerWhoHasPriority; // 0 you, 1 them
+
     public int CurrentCredits { get => currentCredits; set => currentCredits = value; }
 
     private void Start()
 	{
 		i = this;
+        playerWhoHasPriority = UnityEngine.Random.Range(0, 2);
         availableCardSlots = new GameCard[cardSlots.Length];
         GetPlayerDeck();
         DrawCard();
@@ -54,7 +59,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (deck.Count > 0)
 		{
-			CardStats randomCard = deck[Random.Range(0, deck.Count)];
+			CardStats randomCard = deck[UnityEngine.Random.Range(0, deck.Count)];
 			for (int i = 0; i < availableCardSlots.Length; i++)
 			{
 				if (availableCardSlots[i] == null)
@@ -84,7 +89,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-		return cardWithAction;
+		return cardWithAction.OrderBy(x=>x.speed).ToList();
     }
 	public void EndTurn()
 	{
@@ -99,20 +104,31 @@ public class GameManager : MonoBehaviour
     {
         //Play CPU's cards 
         yield return StartCoroutine(TakeCPUTurn());
+
         bool attackLoop = true;
         List<GameCard> activeCards = GetActiveCards();
-        //check for on arrival abilities
-        foreach (var activeCard in activeCards.Where(x=>!x.hasCheckedForArrivalAbilities))
+        List<GameCard> activeOldCards = activeCards.Where(x => !CardsPlayedThisTurn.Contains(x)).ToList();
+        //update priority
+        for (int i = 0; i < activeOldCards.Count(); i++)
         {
-            activeCard.CheckForOnArrivalAbilties();
+            activeOldCards[i].SetSpeed(i + 1);
         }
+        //check for on arrival abilities and add priority
+        var cardsPlayedThisTurnMixed = MixUpCardsPlayedThisTurn();
+        for (int i = 0; i < cardsPlayedThisTurnMixed.Count(); i++)
+        {
+            cardsPlayedThisTurnMixed[i].CheckForOnArrivalAbilties();
+            cardsPlayedThisTurnMixed[i].SetSpeed(activeOldCards.Count() + i+1);
+        }
+        CardsPlayedThisTurn.Clear();
+        cardsPlayedThisTurnMixed.Clear();
         //after tur 8 loop forever till game ends
         while (attackLoop)
         {
             //attack
             bool stillAttacking = false;
             activeCards = GetActiveCards();
-            foreach (var attacker in activeCards.OrderByDescending(x => x.speed))
+            foreach (var attacker in activeCards)
             {
                 if (!attacker.hasSlowStart && attacker.CurrentHp > 0)
                 {
@@ -209,7 +225,7 @@ public class GameManager : MonoBehaviour
             attack = (int)(attack * .75);
         }
         //check for crits and misfires
-        var rand = Random.Range(0, 20);
+        var rand = UnityEngine.Random.Range(0, 20);
         if (rand == 0 || (card.doubleMisfire && rand == 1))
         {
             line.material.color = Color.red;
@@ -229,15 +245,15 @@ public class GameManager : MonoBehaviour
         var spawnCount = 0;
         while (aiMana > 0)
         {
-            var randomCard = AllCardsInGame.i.allCards[Random.Range(0, AllCardsInGame.i.allCards.Where(x=>x.cost <= aiMana).Count())];
+            var randomCard = AllCardsInGame.i.allCards[UnityEngine.Random.Range(0, AllCardsInGame.i.allCards.Where(x=>x.cost <= aiMana).Count())];
            
             var openLanes = teamBases.Where(x => x.CurrentHp > 0).ToList();
-            var cardX = openLanes[Random.Range(0, openLanes.Count())].x;
-            var cardY = Random.Range(4, 8);
+            var cardX = openLanes[UnityEngine.Random.Range(0, openLanes.Count())].x;
+            var cardY = UnityEngine.Random.Range(4, 8);
             while (gameBoard[cardX, cardY] != null)
             {
-                cardX = openLanes[Random.Range(0, openLanes.Count())].x;
-                cardY = Random.Range(4, 8);
+                cardX = openLanes[UnityEngine.Random.Range(0, openLanes.Count())].x;
+                cardY = UnityEngine.Random.Range(4, 8);
                 if (gameBoard[cardX, 4] != null && gameBoard[cardX, 5] != null && gameBoard[cardX, 6] != null && gameBoard[cardX, 7] != null)
                 {
                     break;
@@ -409,5 +425,58 @@ public class GameManager : MonoBehaviour
             card.transform.rotation = cardSlots[i].transform.rotation;
             availableCardSlots[i] = card;
         }
+    }
+
+    public List<GameCard> MixUpCardsPlayedThisTurn()
+    {
+        var teamHP = teamBases.Sum(x => x.CurrentHp);
+        var enemyHP = enemyBases.Sum(x => x.CurrentHp);
+        if (teamHP > enemyHP)
+        {
+            playerWhoHasPriority = 1;
+        }
+        else if (teamHP < enemyHP)
+        {
+            playerWhoHasPriority = 0;
+        }
+        else //if tie then just alternate
+        {
+            playerWhoHasPriority = (playerWhoHasPriority == 0 ? 1 : 0);
+        }
+        List<GameCard> sequenceA = CardsPlayedThisTurn.Where(x=>x.isTeam).ToList();
+        List<GameCard> sequenceB = CardsPlayedThisTurn.Where(x => !x.isTeam).ToList();
+        GameCard[] mixedUpCards = new GameCard[sequenceA.Count + sequenceB.Count];
+        int a = 0;
+        int b = 0;
+        for (int i = 0; i < mixedUpCards.Length; i++)
+        {
+            if (i % 2 == playerWhoHasPriority)
+            {
+                if (a < sequenceA.Count)
+                {
+                    mixedUpCards[i] = sequenceA[a];
+                    a++;
+                }
+                else
+                {
+                    mixedUpCards[i] = sequenceB[b];
+                    b++;
+                }
+            } 
+            else if (i % 2 == (playerWhoHasPriority == 0 ? 1 : 0)) 
+            {
+                if (b < sequenceB.Count)
+                {
+                    mixedUpCards[i] = sequenceB[b];
+                    b++;
+                }
+                else
+                {
+                    mixedUpCards[i] = sequenceA[a];
+                    a++;
+                }
+            }
+        }
+        return mixedUpCards.ToList();
     }
 }
